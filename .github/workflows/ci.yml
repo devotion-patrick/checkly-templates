@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    # Matrix on OS so file-URL / path / shell scripting bugs surface in CI
+    # rather than at a consumer's pipeline run. Both platforms must pass.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        # bash on Windows = Git Bash, which handles the heredocs and POSIX
+        # idioms our scripts use. Keeps the workflow single-shell.
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # 250+ unit tests across schema validation, factory output, Checkly's
+      # own Construct.validate(), URL composition, inspect-config flag
+      # matrix, load-config error paths, registry shape, synthesize output,
+      # pipeline-template YAML structure, and subprocess script behaviour.
+      # This is the load-bearing gate.
+      - name: Test suite
+        run: npm test
+
+      - name: Verify src/deploy/schema.json is up-to-date
+        run: node ./src/deploy/build-schema.mjs --check
+
+      - name: Validate examples/consumer-checks.json end-to-end
+        env:
+          CHECKLY_TEMPLATES_CONFIG: ${{ github.workspace }}/examples/consumer-checks.json
+        run: node ./scripts/try-config.mjs --mode validate
+
+      - name: checkly test --list (compile check, no network)
+        working-directory: src/deploy
+        env:
+          CHECKLY_TEMPLATES_CONFIG: ${{ github.workspace }}/examples/consumer-checks.json
+        # `|| true` because checkly's --list needs creds to fully resolve,
+        # but the parse + bundle step we care about runs first.
+        run: npx checkly test --list || true

@@ -9,7 +9,7 @@ const Ajv = AjvImport as unknown as new (opts?: object) => {
   compile: (schema: unknown) => (data: unknown) => boolean;
 };
 const addFormats = addFormatsImport as unknown as (ajv: object) => void;
-import type { FrequencyName, ProjectContext } from '@checkly-templates/shared/types';
+import type { ProjectContext } from '@checkly-templates/shared/types';
 import { buildSchema } from './schema-builder.ts';
 import type { ConsumerConfig } from './types.ts';
 
@@ -31,6 +31,13 @@ function readConfigSource(): { source: string; raw: string } {
 }
 
 let cached: ConsumerConfig | null = null;
+
+// Test-only: forget the cached config so the next loadConsumerConfig()
+// call re-reads from disk. Production runs go through one config load
+// per Checkly CLI invocation, so this hook is a no-op in production.
+export function _resetConfigCacheForTests(): void {
+  cached = null;
+}
 
 export function loadConsumerConfig(): ConsumerConfig {
   if (cached) return cached;
@@ -60,13 +67,13 @@ export function loadConsumerConfig(): ConsumerConfig {
   return cached;
 }
 
-const DEFAULT_FREQUENCY: FrequencyName = 'EVERY_15M';
-const DEFAULT_LOCATIONS = ['eu-central-1'];
-
 export function buildContext(config: ConsumerConfig): ProjectContext {
   return {
     project: config.project,
-    defaultFrequency: config.project.defaults?.frequency ?? DEFAULT_FREQUENCY,
-    defaultLocations: config.project.defaults?.locations ?? DEFAULT_LOCATIONS,
+    // Pass through whatever the consumer set on `project.defaults` — or
+    // leave undefined so kind-level defaults take effect. The precedence
+    // each factory walks is: entry → project → kind → hardcoded fallback.
+    defaultFrequency: config.project.defaults?.frequency,
+    defaultLocations: config.project.defaults?.locations,
   };
 }

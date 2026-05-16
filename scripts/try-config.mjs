@@ -156,15 +156,15 @@ function runChecklyCli(mode, configPath) {
 }
 
 async function runBoth(configPath) {
-  // Smoke gate first (fast, fails-the-pipeline cheaply if assertions break),
-  // then deploy monitors. Each pass filters via CHECKLY_PURPOSE.
+  // Run smoke and monitor independently. Smoke findings are diagnostic
+  // and don't gate deployment — monitors deploy even when smoke fails.
+  // The overall exit code reflects the worst outcome of the two passes.
   const testCode = await runChecklyCli('test', configPath);
   if (testCode !== 0) {
-    console.error(`\nSmoke gate failed (exit ${testCode}). Skipping monitor deploy.`);
-    process.exit(testCode);
+    console.error(`\nSmoke pass exited ${testCode} (findings present). Proceeding with monitor deploy.`);
   }
   const deployCode = await runChecklyCli('deploy', configPath);
-  process.exit(deployCode);
+  process.exit(Math.max(testCode, deployCode));
 }
 
 const opts = parseArgs(process.argv.slice(2));

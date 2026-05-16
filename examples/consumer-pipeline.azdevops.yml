@@ -1,6 +1,5 @@
 # Copy-paste this file into your consumer repo as azure-pipelines.yml
-# (or whatever your team's convention is). Tweak `ref:` to whichever
-# checkly-templates tag you want to pin to.
+# (or whatever your team's convention is).
 
 trigger:
   branches:
@@ -14,11 +13,18 @@ resources:
       type: github
       endpoint: github-service-connection
       name: devotion-patrick/checkly-templates
-      ref: refs/tags/v0.1.0
+      ref: refs/heads/main
 
 stages:
-  - template: .azdevops/templates/deploy.yml@checklyTemplates
+  - template: templates/azuredevops/deploy.yml@checklyTemplates
     parameters:
       # Relative to your repo root.
       configPath: .checkly/checks.json
       checklyCredentialsGroup: checkly-prod
+      # Optional. List any *secret* variables (from your variable group)
+      # that your check config references via `valueFromEnv`. ADO doesn't
+      # expose secret variables to scripts unless they're mapped
+      # explicitly; this is how you opt them in. Non-secret variables
+      # propagate without listing.
+      # secretEnvVars:
+      #   - HEALTH_KEY

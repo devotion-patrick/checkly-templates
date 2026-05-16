@@ -1,6 +1,7 @@
 import { PlaywrightCheck } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
+import { resolveLocations } from '@checkly-templates/shared/locations';
 import { gdprEuUkCa } from '@checkly-templates/shared';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
@@ -14,7 +15,6 @@ import {
 
 export const defaults: KindDefaults = {
   frequency: 'EVERY_24H',
-  locations: ['eu-central-1'],
 };
 
 function presetRules(name: GdprPresetName): GdprCustomRules | null {
@@ -83,8 +83,8 @@ export function resolveRules(entry: GdprEntry): GdprCustomRules {
 
 export function factory(entry: GdprEntry, ctx: ProjectContext): PlaywrightCheck {
   const rules = resolveRules(entry);
-  const frequencyName = entry.frequency ?? defaults.frequency ?? ctx.defaultFrequency;
-  const locations = entry.locations ?? defaults.locations ?? ctx.defaultLocations;
+  const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? "EVERY_15M";
+  const locations = resolveLocations(entry, ctx);
 
   const tags = mergeTags(
     buildAutoTags({ project: ctx.project, entry }),

@@ -421,8 +421,7 @@
               },
               "healthPath": {
                 "type": "string",
-                "default": "/health",
-                "description": "Path appended to url. Default \"/health\".",
+                "description": "Optional path appended to `url`. Omit if `url` already points at the health endpoint; set to e.g. \"/health\" if `url` is just the base URL of the service.",
                 "pattern": "^/.*"
               },
               "expectedComponents": {
@@ -437,6 +436,54 @@
                 "type": "string",
                 "default": "Healthy",
                 "description": "Value $.status must equal."
+              },
+              "headers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Literal header value."
+                    },
+                    "valueFromEnv": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Name of a process env var read at deploy time. Becomes a per-check Checkly env var; the header value is set to `{{<name>}}` which Checkly resolves server-side at run time. Use this for secrets so they live in your CI vault, not this config file."
+                    }
+                  },
+                  "oneOf": [
+                    {
+                      "required": [
+                        "value"
+                      ],
+                      "not": {
+                        "required": [
+                          "valueFromEnv"
+                        ]
+                      }
+                    },
+                    {
+                      "required": [
+                        "valueFromEnv"
+                      ],
+                      "not": {
+                        "required": [
+                          "value"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "description": "Extra request headers. Each item sets exactly one of `value` (literal) or `valueFromEnv` (CI-sourced, per-check secret)."
               }
             },
             "allOf": [
@@ -977,6 +1024,328 @@
                   },
                   "gtmDomain": {
                     "type": "string"
+                  }
+                }
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url",
+              "checks"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "launch-readiness"
+              },
+              "waitUntil": {
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "domcontentloaded"
+              },
+              "checks": {
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                  "placeholderText": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "patterns": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "minItems": 1
+                          }
+                        },
+                        "required": [
+                          "patterns"
+                        ]
+                      }
+                    ]
+                  },
+                  "favicon": {
+                    "type": "boolean"
+                  },
+                  "canonical": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "expectedUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "h1": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "count": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "count"
+                        ]
+                      }
+                    ]
+                  },
+                  "headingOrder": {
+                    "type": "boolean"
+                  },
+                  "imgAlt": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "allowEmptyForDecorative": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "metaTitle": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "minLength": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "maxLength": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "metaDescription": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "minLength": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "maxLength": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "ogTags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^og:"
+                    },
+                    "minItems": 1
+                  },
+                  "robotsTxt": {
+                    "type": "boolean"
+                  },
+                  "sitemap": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "pattern": "^/"
+                          },
+                          "spotCheckUrls": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "securityHeaders": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "notFoundPage": {
+                    "oneOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "probe": {
+                            "type": "string",
+                            "pattern": "^/"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expectedScripts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  },
+                  "recaptchaOnForms": {
+                    "type": "boolean"
+                  },
+                  "lowercaseUrls": {
+                    "type": "boolean"
+                  },
+                  "trailingSlashRedirect": {
+                    "enum": [
+                      "drop",
+                      "add"
+                    ]
                   }
                 }
               }

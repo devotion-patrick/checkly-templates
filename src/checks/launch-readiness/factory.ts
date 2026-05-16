@@ -4,14 +4,17 @@ import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
-import { KIND, type XpathSpaEntry } from './schema.ts';
+import { KIND, type LaunchReadinessEntry } from './schema.ts';
 
 export const defaults: KindDefaults = {
-  frequency: 'EVERY_1H',
+  // Launch readiness is overwhelmingly a release-gate concern; if the
+  // consumer flips monitor: true the kind still works as a daily monitor,
+  // but the default cadence here reflects the smoke-gate use case.
+  frequency: 'EVERY_24H',
 };
 
-export function factory(entry: XpathSpaEntry, ctx: ProjectContext): PlaywrightCheck {
-  const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? "EVERY_15M";
+export function factory(entry: LaunchReadinessEntry, ctx: ProjectContext): PlaywrightCheck {
+  const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? 'EVERY_15M';
   const locations = resolveLocations(entry, ctx);
 
   const tags = mergeTags(
@@ -21,7 +24,7 @@ export function factory(entry: XpathSpaEntry, ctx: ProjectContext): PlaywrightCh
   );
 
   return new PlaywrightCheck(entry.logicalId, {
-    name: `xpath-spa: ${ctx.project.name} - ${entry.env} - ${entry.url}`,
+    name: `Launch readiness: ${ctx.project.name} - ${entry.env} - ${entry.url}`,
     playwrightConfigPath: './playwright.config.ts',
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],
@@ -33,7 +36,7 @@ export function factory(entry: XpathSpaEntry, ctx: ProjectContext): PlaywrightCh
         key: 'CHECK_PARAMS',
         value: JSON.stringify({
           waitUntil: entry.waitUntil ?? 'domcontentloaded',
-          selectors: entry.expect,
+          checks: entry.checks,
         }),
       },
     ],

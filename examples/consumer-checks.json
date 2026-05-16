@@ -35,12 +35,14 @@
       "kind": "dotnet-health",
       "logicalId": "acme-api-prod-health",
       "env": "PROD",
-      "url": "https://api.acme.com",
-      "healthPath": "/health",
+      "url": "https://api.acme.com/health",
       "expectedComponents": ["sql", "redis"],
       "frequency": "EVERY_5M",
       "smoke": true,
-      "monitor": true
+      "monitor": true,
+      "headers": [
+        { "key": "X-Health-Key", "valueFromEnv": "HEALTH_KEY" }
+      ]
     },
     {
       "kind": "xpath",
@@ -81,6 +83,37 @@
       "locations": ["eu-central-1"],
       "smoke": true,
       "monitor": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "acme-home-launch-ready",
+      "env": "PROD",
+      "url": "https://www.acme.com",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": { "expectedUrl": "https://www.acme.com/" },
+        "h1": true,
+        "headingOrder": true,
+        "imgAlt": true,
+        "metaTitle": { "minLength": 30, "maxLength": 65 },
+        "metaDescription": { "minLength": 70, "maxLength": 160 },
+        "ogTags": ["og:title", "og:description", "og:image", "og:url"],
+        "robotsTxt": true,
+        "sitemap": { "spotCheckUrls": 3 },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy"
+        ],
+        "notFoundPage": true,
+        "expectedScripts": ["googletagmanager.com/gtm.js"],
+        "recaptchaOnForms": true,
+        "trailingSlashRedirect": "drop"
+      },
+      "smoke": true,
+      "monitor": false
     }
   ]
 }

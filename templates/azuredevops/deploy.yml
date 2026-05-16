@@ -1,0 +1,207 @@
+# Azure DevOps reusable template — applies a consumer's Checkly project
+# from a unified config file. Pair with the consumer's pipeline via:
+#
+#   resources:
+#     repositories:
+#       - repository: checklyTemplates
+#         type: github
+#         endpoint: github-service-connection
+#         name: devotion-patrick/checkly-templates
+#         ref: refs/tags/v0.1.0
+#
+#   stages:
+#     - template: templates/azuredevops/deploy.yml@checklyTemplates
+#       parameters:
+#         configPath: .checkly/checks.json
+#         checklyCredentialsGroup: checkly-prod
+#
+# `configPath` is interpreted relative to your repo root. The variable
+# group named by `checklyCredentialsGroup` must expose CHECKLY_API_KEY
+# and CHECKLY_ACCOUNT_ID (typically as secret variables).
+#
+# Per-entry purpose
+# -----------------
+# Each entry in the consumer config declares `smoke: bool` and
+# `monitor: bool` (at least one must be true). The default `mode: both`
+# runs two passes:
+#
+#   1. `checkly test`   against entries with `smoke: true`   (release gate)
+#   2. `checkly deploy` against entries with `monitor: true` (continuous)
+#
+# Set `mode: test` or `mode: monitor` to run only one pass.
+
+parameters:
+  - name: configPath
+    type: string
+    # Relative to the consumer repo root, e.g. ".checkly/checks.json".
+  - name: mode
+    type: string
+    default: both
+    values:
+      - test
+      - monitor
+      - both
+  - name: dryRun
+    type: boolean
+    default: false
+    # When true, the monitor pass runs `checkly deploy --preview` (diff only).
+  - name: checklyCredentialsGroup
+    type: string
+  - name: smokeLocation
+    # Override the region `checkly test` runs from. Defaults to whatever
+    # `cli.runLocation` resolves to (project.defaults.locations[0]).
+    # Set this if you need smoke runs from a specific region — e.g. GDPR
+    # checks that need an EU vantage even when most checks deploy to
+    # APAC. Single Checkly region ID like "ap-southeast-2" or
+    # "eu-central-1". Empty string = let checkly.config.ts decide.
+    type: string
+    default: ''
+  - name: secretEnvVars
+    # List the *names* of secret variables (from your variable group or
+    # pipeline) that need to reach the `checkly deploy` / `checkly test`
+    # steps as process env vars. ADO does NOT auto-expose "secret" type
+    # variables to scripts; this parameter is how you opt them in.
+    #
+    # Example:
+    #   secretEnvVars: [HEALTH_KEY, ANOTHER_API_KEY]
+    #
+    # Each name appears as a process env var of the same name during
+    # both smoke and monitor passes, so the factories can read them via
+    # `valueFromEnv`.
+    type: object
+    default: []
+  - name: nodeVersion
+    type: string
+    default: '22.x'
+  - name: stageName
+    type: string
+    default: deploy_checkly
+  - name: stageDisplayName
+    type: string
+    default: 'Deploy Checkly monitors'
+
+stages:
+  - stage: ${{ parameters.stageName }}
+    displayName: ${{ parameters.stageDisplayName }}
+    jobs:
+      - job: deploy
+        displayName: 'checkly ${{ parameters.mode }}'
+        variables:
+          - group: ${{ parameters.checklyCredentialsGroup }}
+          # ADO multi-checkout places each repo under $(Build.SourcesDirectory)/<repo-name>.
+          # We pin both repos to known paths so the template doesn't depend on
+          # what the consumer happens to have named their repo.
+          - name: consumerDir
+            value: $(Build.SourcesDirectory)/consumer
+          - name: templatesDir
+            value: $(Build.SourcesDirectory)/checkly-templates
+          - name: CHECKLY_TEMPLATES_CONFIG
+            value: $(consumerDir)/${{ parameters.configPath }}
+        steps:
+          - checkout: self
+            path: s/consumer
+          - checkout: checklyTemplates
+            path: s/checkly-templates
+
+          - script: |
+              set -ex
+              echo "=== DNS ==="
+              nslookup api.checklyhq.com || true
+              nslookup api.eu-west-1.checklyhq.com || true
+              echo "=== TCP reachability ==="
+              curl -v -m 10 https://api.checklyhq.com/v1/runtimes 2>&1 | head -40 || true
+              echo "=== Public egress IP (what Checkly sees us as) ==="
+              curl -s -m 5 https://api.ipify.org || true
+              echo
+            displayName: 'Diagnose Checkly API reachability'
+
+          - script: |
+              set +e
+              echo "=== api.checklyhq.com (should already work) ==="
+              curl -sv -m 10 https://api.checklyhq.com/v1/runtimes 2>&1 | tail -5
+              echo "=== events.checklyhq.com (suspect) ==="
+              curl -sv -m 10 https://events.checklyhq.com/ 2>&1 | tail -15
+              echo "=== DNS for events.checklyhq.com ==="
+              nslookup events.checklyhq.com || true
+            displayName: 'Diagnose Checkly events endpoint'
+
+          - task: NodeTool@0
+            displayName: 'Use Node ${{ parameters.nodeVersion }}'
+            inputs:
+              versionSpec: ${{ parameters.nodeVersion }}
+
+          - script: npm ci
+            displayName: 'npm ci (templates repo)'
+            workingDirectory: $(templatesDir)
+
+          - script: node ./scripts/inspect-config.mjs "$(CHECKLY_TEMPLATES_CONFIG)" --format=ado
+            displayName: 'Inspect config (Playwright / smoke / monitor flags)'
+            workingDirectory: $(templatesDir)
+
+          - script: npx playwright install --with-deps chromium
+            displayName: 'Install Chromium (Playwright kinds present)'
+            condition: and(succeeded(), eq(variables.needsPlaywright, 'true'))
+            workingDirectory: $(templatesDir)
+
+          # --record persists the run as a test session in Checkly's UI.
+          # When Checkly's CLI swallows an error and prints just
+          # "Unable to run checks: " with no message, the UI still has the
+          # real cause. Worth the per-run cost.
+          - script: |
+              set -ex
+              cd src/deploy
+              # Monkey-patch Checkly's reporter to dump the FULL error (not just .message)
+              TARGET="../../node_modules/checkly/dist/reporters/abstract-list.js"
+              sed -i "s/+ err\.message/+ (err.message || JSON.stringify(err, Object.getOwnPropertyNames(err), 2))/" "$TARGET"
+              echo "Patched abstract-list.js to dump full error on failure."
+              LOCATION_FLAG=""
+              if [ -n "${{ parameters.smokeLocation }}" ]; then
+                LOCATION_FLAG="--location ${{ parameters.smokeLocation }}"
+              fi
+              npx checkly test --record $LOCATION_FLAG
+            displayName: 'checkly test (smoke gate; entries with smoke=true)'
+            condition: and(succeeded(), in('${{ parameters.mode }}', 'test', 'both'), eq(variables.hasSmoke, 'true'))
+            workingDirectory: $(templatesDir)
+            env:
+              CHECKLY_API_KEY: $(CHECKLY_API_KEY)
+              CHECKLY_ACCOUNT_ID: $(CHECKLY_ACCOUNT_ID)
+              CHECKLY_TEMPLATES_CONFIG: $(CHECKLY_TEMPLATES_CONFIG)
+              CHECKLY_PURPOSE: test
+              # Forward each named secret from the variable group into the
+              # script's env so factories using `valueFromEnv` can read it.
+              ${{ each name in parameters.secretEnvVars }}:
+                ${{ name }}: $(${{ name }})
+
+          - script: echo "Skipping smoke pass - no entries with smoke=true in $(CHECKLY_TEMPLATES_CONFIG)."
+            displayName: 'Smoke pass skipped (no smoke entries)'
+            condition: and(succeeded(), in('${{ parameters.mode }}', 'test', 'both'), ne(variables.hasSmoke, 'true'))
+
+          - script: |
+              set -ex
+              cd src/deploy
+              # Monkey-patch Checkly's reporter to dump the FULL error (not just .message)
+              TARGET="../../node_modules/checkly/dist/reporters/abstract-list.js"
+              sed -i "s/+ err\.message/+ (err.message || JSON.stringify(err, Object.getOwnPropertyNames(err), 2))/" "$TARGET"
+              if [ "${{ parameters.dryRun }}" = "True" ]; then
+                npx checkly deploy --preview
+              else
+                npx checkly deploy --force
+              fi
+            displayName: 'checkly deploy (monitors; entries with monitor=true)'
+            # succeededOrFailed() so the deploy still runs when smoke
+            # reports findings. Smoke is diagnostic, not gating.
+            condition: and(succeededOrFailed(), in('${{ parameters.mode }}', 'monitor', 'both'), eq(variables.hasMonitor, 'true'))
+            workingDirectory: $(templatesDir)
+            env:
+              CHECKLY_API_KEY: $(CHECKLY_API_KEY)
+              CHECKLY_ACCOUNT_ID: $(CHECKLY_ACCOUNT_ID)
+              CHECKLY_TEMPLATES_CONFIG: $(CHECKLY_TEMPLATES_CONFIG)
+              CHECKLY_PURPOSE: monitor
+              # Forward each named secret from the variable group into the
+              # script's env so factories using `valueFromEnv` can read it.
+              ${{ each name in parameters.secretEnvVars }}:
+                ${{ name }}: $(${{ name }})
+
+          - script: echo "Skipping monitor pass - no entries with monitor=true in $(CHECKLY_TEMPLATES_CONFIG)."
+            displayName: 'Monitor pass skipped (no monitor entries)'
+            condition: and(succeededOrFailed(), in('${{ parameters.mode }}', 'monitor', 'both'), ne(variables.hasMonitor, 'true'))

@@ -1,18 +1,18 @@
 import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
+import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
 import { type XpathEntry } from './schema.ts';
 
 export const defaults: KindDefaults = {
   frequency: 'EVERY_30M',
-  locations: ['eu-central-1'],
 };
 
 export function factory(entry: XpathEntry, ctx: ProjectContext): ApiCheck {
-  const frequencyName = entry.frequency ?? defaults.frequency ?? ctx.defaultFrequency;
-  const locations = entry.locations ?? defaults.locations ?? ctx.defaultLocations;
+  const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? "EVERY_15M";
+  const locations = resolveLocations(entry, ctx);
 
   const tags = mergeTags(
     buildAutoTags({ project: ctx.project, entry }),

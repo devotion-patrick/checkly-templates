@@ -11,13 +11,25 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Initial unified-config scaffold. One consumer config (JSON) describes
   all checks across all kinds; one pipeline template per CI system
   deploys them to a single Checkly project per consumer.
-- Six kind modules under `src/checks/`: `gdpr`, `uptime-ssl`, `redirect`,
-  `dotnet-health`, `xpath`, `xpath-spa`.
+- Seven kind modules under `src/checks/`: `gdpr`, `uptime-ssl`, `redirect`,
+  `dotnet-health`, `xpath`, `xpath-spa`, `launch-readiness`.
+- **`launch-readiness` kind** (PlaywrightCheck) — structural launch-audit
+  assertions against a URL: placeholder copy, favicon, canonical, H1
+  count + heading hierarchy, image alt attributes, meta title and
+  description (with optional length bounds), OG tags (with `og:image`
+  fetch verification), robots.txt, XML sitemap (with optional URL
+  spot-check), required response headers, custom 404 page, expected
+  third-party scripts, reCAPTCHA on every `<form>`, lowercase-URL
+  redirect, trailing-slash redirect. Every assertion is opt-in via
+  per-entry `checks: {}`. Findings accumulate into a single
+  pass/fail with a punch list (no first-fail short-circuit). Default
+  cadence `EVERY_24H` — primarily a release-time gate but also
+  reasonable as daily drift detection on security headers / meta tags.
 - Shared utilities under `src/shared/`: tag auto-emission
   (`source:` / `app:` / `env:` / `kind:` triple), frequency helpers,
   GDPR EU/UK/CA preset.
-- Pipeline templates: `.azdevops/templates/deploy.yml`,
-  `.github/workflows/templates/deploy.yml`.
+- Pipeline templates: `templates/azuredevops/deploy.yml`,
+  `.github/workflows/deploy.yml`.
 - Local sandbox: `npm run try` / `try:test` / `try:preview` / `try:deploy`
   / `try:both`, auto-loading credentials from a gitignored
   `local-testing/.env` file.
@@ -56,6 +68,22 @@ you fork and add new kinds, you need to know these:
   enumerated in any nested `package.json`. See
   [`src/deploy/package.json`](./src/deploy/package.json) for the
   inline note.
+
+### Behavioural notes
+
+- **Locations are explicit, with no kind-level defaults.** Either set
+  `project.defaults.locations` (recommended) or per-entry `locations`.
+  Factories throw if neither is set, naming the offending entry. This
+  is deliberately stricter than the original v0.1.0 design — a kind
+  deciding where the consumer's monitor runs is surprising; better to
+  fail loudly. Earlier versions of this template had kind-level
+  defaults that silently overrode `project.defaults.locations`; that
+  behaviour is gone.
+- **Smoke findings don't gate the monitor deploy.** Both passes run in
+  the `mode: both` flow; the job exits non-zero if either fails, but
+  monitors land in your Checkly account regardless of whether smoke
+  caught something. Reasoning: missed-coverage shouldn't accumulate
+  while you're fixing whatever smoke just caught.
 
 ### Known gaps
 

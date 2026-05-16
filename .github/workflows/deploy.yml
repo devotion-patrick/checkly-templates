@@ -1,0 +1,138 @@
+# Reusable GitHub Actions workflow — applies a consumer's Checkly
+# project from a unified config file. Consumers wire this up via:
+#
+#   jobs:
+#     deploy-checkly:
+#       uses: devotion-patrick/checkly-templates/.github/workflows/deploy.yml@v0.1.0
+#       with:
+#         config-path: .checkly/checks.json
+#       secrets:
+#         CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+#         CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+#
+# `config-path` is interpreted relative to the consumer repo checkout.
+#
+# Per-entry purpose
+# -----------------
+# Each entry declares `smoke: bool` and `monitor: bool`. The default
+# `mode: both` runs two passes:
+#
+#   1. checkly test    against smoke entries  (release gate)
+#   2. checkly deploy  against monitor entries (continuous)
+#
+# Set `mode: test` or `mode: monitor` to run only one pass.
+
+name: Deploy Checkly monitors
+
+on:
+  workflow_call:
+    inputs:
+      config-path:
+        description: 'Path to consumer unified config (relative to the consumer repo).'
+        type: string
+        required: true
+      mode:
+        description: 'test | monitor | both. Default both.'
+        type: string
+        default: both
+      dry-run:
+        description: 'When true, the monitor pass runs `checkly deploy --preview` (no apply).'
+        type: boolean
+        default: false
+      node-version:
+        type: string
+        default: '22'
+      templates-ref:
+        description: 'Branch or tag of the templates repo to check out.'
+        type: string
+        default: ''
+      smoke-location:
+        description: 'Override the Checkly region the smoke pass runs from. Defaults to project.defaults.locations[0].'
+        type: string
+        default: ''
+    secrets:
+      CHECKLY_API_KEY:
+        required: true
+      CHECKLY_ACCOUNT_ID:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CHECKLY_TEMPLATES_CONFIG: ${{ github.workspace }}/consumer/${{ inputs.config-path }}
+      CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+      CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+    steps:
+      - name: Checkout consumer repo
+        uses: actions/checkout@v4
+        with:
+          path: consumer
+
+      - name: Checkout templates repo
+        uses: actions/checkout@v4
+        with:
+          repository: devotion-patrick/checkly-templates
+          ref: ${{ inputs.templates-ref || github.action_ref || 'main' }}
+          path: templates
+
+      - name: Setup Node ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+          cache-dependency-path: templates/package-lock.json
+
+      - name: Install template deps
+        run: npm ci
+        working-directory: templates
+
+      - name: Inspect config (Playwright / smoke / monitor flags)
+        id: inspect
+        run: node ./scripts/inspect-config.mjs "$CHECKLY_TEMPLATES_CONFIG" --format=gha
+        working-directory: templates
+
+      - name: Install Chromium
+        if: steps.inspect.outputs.needs-playwright == 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: templates
+
+      - name: checkly test (smoke gate; entries with smoke=true)
+        if: (inputs.mode == 'test' || inputs.mode == 'both') && steps.inspect.outputs.has-smoke == 'true'
+        working-directory: templates/src/deploy
+        env:
+          CHECKLY_PURPOSE: test
+        # --record persists the run as a test session in Checkly's UI.
+        # When Checkly's CLI swallows an error and prints just
+        # "Unable to run checks: " with no message, the UI still has the
+        # real cause. Worth the per-run cost.
+        run: |
+          LOCATION_FLAG=""
+          if [ -n "${{ inputs.smoke-location }}" ]; then
+            LOCATION_FLAG="--location ${{ inputs.smoke-location }}"
+          fi
+          npx checkly test --record $LOCATION_FLAG
+
+      - name: Smoke pass skipped (no smoke entries)
+        if: (inputs.mode == 'test' || inputs.mode == 'both') && steps.inspect.outputs.has-smoke != 'true'
+        run: echo "Skipping smoke pass — no entries with smoke=true in $CHECKLY_TEMPLATES_CONFIG."
+
+      # The monitor pass uses `!cancelled()` so it runs even when the
+      # smoke step above reported failures. Smoke findings are
+      # diagnostic; they don't gate deployment. The overall job still
+      # reports failure if either pass exits non-zero.
+      - name: checkly deploy (monitors; entries with monitor=true)
+        if: ${{ !cancelled() && (inputs.mode == 'monitor' || inputs.mode == 'both') && steps.inspect.outputs.has-monitor == 'true' }}
+        working-directory: templates/src/deploy
+        env:
+          CHECKLY_PURPOSE: monitor
+        run: |
+          if [ "${{ inputs.dry-run }}" = "true" ]; then
+            npx checkly deploy --preview
+          else
+            npx checkly deploy --force
+          fi
+
+      - name: Monitor pass skipped (no monitor entries)
+        if: ${{ !cancelled() && (inputs.mode == 'monitor' || inputs.mode == 'both') && steps.inspect.outputs.has-monitor != 'true' }}
+        run: echo "Skipping monitor pass — no entries with monitor=true in $CHECKLY_TEMPLATES_CONFIG."

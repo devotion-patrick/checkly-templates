@@ -32,9 +32,9 @@ persists monitors.
 | `src/shared/`           | Cross-cutting helpers (tags, frequency, GDPR preset, types).    |
 | `src/checks/<kind>/`    | One folder per check kind. `factory.ts` + `schema.ts` + README. |
 | `examples/`             | Copy-paste-edit consumer artifacts (config + pipeline YAMLs).   |
-| `scripts/`              | `try-config.mjs`, `detect-playwright.mjs`.                      |
-| `.azdevops/templates/`  | ADO reusable pipeline template.                                 |
-| `.github/workflows/`    | GHA workflows (this repo's CI + the reusable consumer template).|
+| `scripts/`              | `try-config.mjs`, `inspect-config.mjs`.                         |
+| `templates/azuredevops/`| ADO reusable pipeline template (consumer-facing).               |
+| `.github/workflows/`    | GHA workflows: this repo's CI + the reusable consumer `deploy.yml`. |
 
 ## Adding a new kind
 

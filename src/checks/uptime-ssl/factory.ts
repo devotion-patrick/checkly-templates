@@ -1,21 +1,21 @@
 import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
+import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
 import { type UptimeSslEntry } from './schema.ts';
 
 export const defaults: KindDefaults = {
   frequency: 'EVERY_5M',
-  locations: ['eu-central-1', 'ap-southeast-2'],
 };
 
 const DEFAULT_THRESHOLD_DAYS = 30;
 const DEFAULT_SUCCESS_RANGE = { min: 200, max: 299 } as const;
 
 export function factory(entry: UptimeSslEntry, ctx: ProjectContext): ApiCheck {
-  const frequencyName = entry.frequency ?? defaults.frequency ?? ctx.defaultFrequency;
-  const locations = entry.locations ?? defaults.locations ?? ctx.defaultLocations;
+  const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? "EVERY_15M";
+  const locations = resolveLocations(entry, ctx);
   const successRange = entry.successStatusRange ?? DEFAULT_SUCCESS_RANGE;
   // SSL expiry alerting in Checkly v7 is configured at the alert-channel
   // level (`sslExpiry: true`, `sslExpiryThreshold: <days>`), not on the

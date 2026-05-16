@@ -1,0 +1,17 @@
+{
+  "name": "@checkly-templates/launch-readiness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly PlaywrightCheck: structural launch-audit assertions against a URL (placeholder copy, SEO meta, OG tags, robots/sitemap, security headers, 404 page, redirect hygiene, expected third-party scripts, reCAPTCHA on forms, etc.). Designed to run as a release-time smoke gate.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.60.0",
+    "checkly": "^7.15.0"
+  }
+}

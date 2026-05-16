@@ -90,7 +90,7 @@ resources:
       ref: refs/tags/v0.1.0
 
 stages:
-  - template: .azdevops/templates/deploy.yml@checklyTemplates
+  - template: templates/azuredevops/deploy.yml@checklyTemplates
     parameters:
       configPath: .checkly/checks.json
       checklyCredentialsGroup: checkly-prod
@@ -114,9 +114,9 @@ checkly-templates/
 │       ├── xpath/             # ApiCheck factory (body substring assertions)
 │       └── xpath-spa/         # PlaywrightCheck + spec (DOM selectors)
 ├── examples/                  # paste-and-edit consumer config + pipeline files
-├── scripts/                   # try-config.mjs, detect-playwright.mjs
-├── .azdevops/templates/       # ADO deploy template
-└── .github/workflows/         # GHA deploy template + this repo's CI/release
+├── scripts/                   # try-config.mjs, inspect-config.mjs
+├── templates/azuredevops/     # ADO deploy template (consumer-facing)
+└── .github/workflows/         # this repo's CI/release + consumer GHA deploy.yml
 ```
 
 ## Conventions
@@ -131,6 +131,19 @@ merged in.
 **Project = Checkly project.** `project.logicalId` is the Checkly
 project's `logicalId`. One config = one Checkly project, every check
 lands inside it.
+
+**Locations are explicit.** Every check needs locations set at the entry
+or project level. There are no kind-level location defaults (a kind
+shouldn't decide where the consumer's monitor runs). If neither
+`project.defaults.locations` nor the entry's `locations` is set, the
+deploy errors out with a clear message naming the entry. Easiest path
+is to set `project.defaults.locations` once and let entries inherit:
+
+```json
+"project": {
+  "defaults": { "locations": ["ap-southeast-2"] }
+}
+```
 
 **Playwright tooling on-demand.** The pipeline only installs Chromium
 when the consumer config references a Playwright kind (`gdpr` or

@@ -42,6 +42,8 @@ export type CheckPurpose = 'test' | 'monitor';
 
 export interface ProjectContext {
   project: ProjectBlock;
-  defaultFrequency: FrequencyName;
-  defaultLocations: string[];
+  // Undefined when the consumer config didn't set `project.defaults.*`.
+  // Factories fall through to their kind-level defaults in that case.
+  defaultFrequency?: FrequencyName;
+  defaultLocations?: string[];
 }
