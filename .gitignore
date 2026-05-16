@@ -1,0 +1,34 @@
+node_modules/
+.env
+.env.local
+
+# Per-consumer config lives in the consumer repo, never here.
+# Belt-and-braces guard against accidentally committing a local copy.
+**/config.json
+
+# Scratch configs developers point `npm run try` at.
+local-testing/*
+!local-testing/.gitkeep
+!local-testing/.env.example
+!local-testing/sandbox-checks.json.example
+
+# Generated schema is committed; CI verifies freshness. Compiled JS isn't.
+dist/
+build/
+
+# Checkly CLI artefacts.
+.checkly/
+test-results/
+playwright-report/
+
+# IDE / OS noise.
+.DS_Store
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.log
+
+plans/
+.azdevops/
+.github/

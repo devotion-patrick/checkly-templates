@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/xpath",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly ApiCheck: GET a URL and assert the raw response body contains / does-not-contain / matches expected strings or regexes. No browser.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

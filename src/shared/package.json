@@ -1,0 +1,19 @@
+{
+  "name": "@checkly-templates/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-cutting helpers used by every kind module (tag conventions, frequency parsing, shared TS types, GDPR preset).",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./tags": "./tags.ts",
+    "./frequency": "./frequency.ts",
+    "./types": "./types.ts",
+    "./entry-schema": "./entry-schema.ts",
+    "./presets/gdpr-eu-uk-ca": "./presets/gdpr-eu-uk-ca.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

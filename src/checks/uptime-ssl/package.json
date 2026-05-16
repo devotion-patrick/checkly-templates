@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/uptime-ssl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly ApiCheck: URL returns success status + TLS cert is more than N days from expiry.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

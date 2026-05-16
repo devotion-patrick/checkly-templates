@@ -1,0 +1,26 @@
+# Copy-paste this file into your consumer repo as
+# .github/workflows/deploy-checkly.yml. Update the templates tag in
+# the `uses:` line to pin to a specific checkly-templates release.
+
+name: Deploy Checkly
+
+on:
+  push:
+    branches: [main]
+    paths: ['.checkly/checks.json']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        type: boolean
+        description: 'Run checkly deploy --preview only (no apply).'
+        default: false
+
+jobs:
+  deploy:
+    uses: devotion-patrick/checkly-templates/.github/workflows/templates/deploy.yml@v0.1.0
+    with:
+      config-path: .checkly/checks.json
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets:
+      CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+      CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}

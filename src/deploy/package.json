@@ -1,0 +1,21 @@
+{
+  "name": "@checkly-templates/deploy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Entry point for `npx checkly` against this template repo. Loads the consumer's unified config, validates it, and registers one Checkly construct per entry via each kind's factory.",
+  "scripts": {
+    "build:schema": "node ./build-schema.mjs",
+    "validate-schema": "node ./build-schema.mjs --check"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "checkly": "^7.15.0",
+    "jiti": "^2.7.0"
+  },
+  "//workspaceDeps": "The `@checkly-templates/*` workspace packages are intentionally not listed here. They are resolved locally via npm-workspace hoisting at the repo root. Listing them here would cause Checkly's cloud runner to attempt `npm install @checkly-templates/...` from the public registry and 404, since these packages are not published.",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

@@ -1,0 +1,20 @@
+# Scratch space for local Checkly testing. Everything here is gitignored
+# except this file and `*.example` siblings.
+
+# Quick-start
+# -----------
+# 1. Copy .env.example -> .env and fill in your Checkly creds.
+# 2. (Recommended) Copy ../examples/consumer-checks.json -> ./my-sandbox.json
+#    and change `project.logicalId` to something like
+#    `sandbox-<yourname>-checks` so you don't collide with anyone else's
+#    Checkly project. Swap the acme.com URLs for URLs you own.
+# 3. From the repo root:
+#      npm run try                                          # validate, no network
+#      npm run try:preview                                  # diff, no apply
+#      npm run try:test    -- --config local-testing/my-sandbox.json
+#      npm run try:deploy  -- --config local-testing/my-sandbox.json
+#
+# DEPLOY SAFETY: `try:deploy` actually persists monitors in your Checkly
+# account. Use a sandbox account or a unique `project.logicalId` so you
+# don't stomp on production. The auto-emitted `source:checkly-templates`
+# tag still makes managed checks identifiable in the Checkly UI.

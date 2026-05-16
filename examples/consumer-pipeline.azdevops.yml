@@ -1,0 +1,24 @@
+# Copy-paste this file into your consumer repo as azure-pipelines.yml
+# (or whatever your team's convention is). Tweak `ref:` to whichever
+# checkly-templates tag you want to pin to.
+
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include: [.checkly/checks.json]
+
+resources:
+  repositories:
+    - repository: checklyTemplates
+      type: github
+      endpoint: github-service-connection
+      name: devotion-patrick/checkly-templates
+      ref: refs/tags/v0.1.0
+
+stages:
+  - template: .azdevops/templates/deploy.yml@checklyTemplates
+    parameters:
+      # Relative to your repo root.
+      configPath: .checkly/checks.json
+      checklyCredentialsGroup: checkly-prod

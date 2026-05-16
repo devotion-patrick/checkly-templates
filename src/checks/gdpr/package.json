@@ -1,0 +1,17 @@
+{
+  "name": "@checkly-templates/gdpr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly Playwright check that catches tracking cookies / requests fired before user consent. Default rule set covers EU/EEA + UK + California; consumers can extend or replace via overrides.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.60.0",
+    "checkly": "^7.15.0"
+  }
+}

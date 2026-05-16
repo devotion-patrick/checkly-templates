@@ -1,0 +1,33 @@
+{
+  "name": "checkly-templates",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reusable Checkly check projects + Azure DevOps / GitHub Actions deploy templates for common site health checks (GDPR, redirects, uptime/SSL, XPath body + SPA assertions, .NET health endpoints).",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "src/shared",
+    "src/deploy",
+    "src/checks/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "try": "node scripts/try-config.mjs",
+    "try:test": "node scripts/try-config.mjs --mode test",
+    "try:preview": "node scripts/try-config.mjs --mode preview",
+    "try:deploy": "node scripts/try-config.mjs --mode deploy",
+    "try:both": "node scripts/try-config.mjs --mode both"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

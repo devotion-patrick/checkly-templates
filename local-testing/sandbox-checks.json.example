@@ -1,0 +1,32 @@
+{
+  "$schema": "../src/deploy/schema.json",
+  "project": {
+    "logicalId": "sandbox-rename-me-checks",
+    "name": "Sandbox - rename me",
+    "defaults": {
+      "frequency": "EVERY_15M",
+      "locations": ["eu-central-1"]
+    }
+  },
+  "checks": [
+    {
+      "kind": "uptime-ssl",
+      "logicalId": "sandbox-example-uptime",
+      "env": "DEV",
+      "url": "https://example.com",
+      "smoke": true,
+      "monitor": false
+    },
+    {
+      "kind": "xpath",
+      "logicalId": "sandbox-example-content",
+      "env": "DEV",
+      "url": "https://example.com",
+      "expect": {
+        "contains": ["Example Domain"]
+      },
+      "smoke": true,
+      "monitor": false
+    }
+  ]
+}

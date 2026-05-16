@@ -1,0 +1,1016 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/devotion-patrick/checkly-templates/releases/download/v0.1.0/schema.json",
+  "title": "Checkly templates consumer config (v0.1.0)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "checks"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logicalId",
+        "name"
+      ],
+      "properties": {
+        "logicalId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "description": "Stable kebab-case slug. Becomes the Checkly project logicalId."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable project name shown in the Checkly UI."
+        },
+        "codename": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short app codename; required when tagPrefix is set so the auto-emitted app: tag has a value."
+        },
+        "tagPrefix": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Prefix for the auto-emitted source/app/env/kind tag set. Omit for a plain `source:checkly-templates` tag."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Free-form tags applied to every check."
+        },
+        "defaults": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "frequency": {
+              "enum": [
+                "EVERY_10S",
+                "EVERY_30S",
+                "EVERY_1M",
+                "EVERY_2M",
+                "EVERY_5M",
+                "EVERY_10M",
+                "EVERY_15M",
+                "EVERY_30M",
+                "EVERY_1H",
+                "EVERY_6H",
+                "EVERY_12H",
+                "EVERY_24H"
+              ]
+            },
+            "locations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "tagPrefix"
+            ]
+          },
+          "then": {
+            "required": [
+              "codename"
+            ]
+          }
+        }
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "uptime-ssl"
+              },
+              "sslCertificateExpiryThresholdDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 365,
+                "default": 30,
+                "description": "Alert when the TLS cert is within this many days of expiry."
+              },
+              "successStatusRange": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "properties": {
+                  "min": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 599
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 599
+                  }
+                },
+                "description": "Inclusive status-code range counted as success. Defaults to 200-299."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url",
+              "expectedLocation"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "redirect"
+              },
+              "expectedStatus": {
+                "type": "integer",
+                "minimum": 300,
+                "maximum": 399,
+                "default": 301,
+                "description": "Expected redirect status code. Default 301."
+              },
+              "expectedLocation": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Exact value the Location header must equal."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "dotnet-health"
+              },
+              "healthPath": {
+                "type": "string",
+                "default": "/health",
+                "description": "Path appended to url. Default \"/health\".",
+                "pattern": "^/.*"
+              },
+              "expectedComponents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Named components whose status must report Healthy. Maps to `$.results.<name>.status`."
+              },
+              "expectedOverallStatus": {
+                "type": "string",
+                "default": "Healthy",
+                "description": "Value $.status must equal."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url",
+              "expect"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "xpath"
+              },
+              "expect": {
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                  "contains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "notContains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url",
+              "expect"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "xpath-spa"
+              },
+              "waitUntil": {
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "domcontentloaded",
+                "description": "Playwright `page.goto` waitUntil. Default `domcontentloaded`."
+              },
+              "expect": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "selector"
+                  ],
+                  "properties": {
+                    "selector": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "equals": {
+                      "type": "string"
+                    },
+                    "contains": {
+                      "type": "string"
+                    },
+                    "notContains": {
+                      "type": "string"
+                    },
+                    "attribute": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "anyOf": [
+                    {
+                      "required": [
+                        "equals"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "contains"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "notContains"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "count"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "env",
+              "url",
+              "complianceMode"
+            ],
+            "properties": {
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "gdpr"
+              },
+              "complianceMode": {
+                "enum": [
+                  "global",
+                  "targeted"
+                ],
+                "description": "`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/UK/CA). Out-of-region runs in `targeted` mode log findings but pass."
+              },
+              "preset": {
+                "enum": [
+                  "eu-uk-ca",
+                  "none"
+                ],
+                "default": "eu-uk-ca",
+                "description": "Built-in rule set. Use `\"none\"` plus `rules` to supply a fully custom rule set."
+              },
+              "overrides": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Surgical edits to the preset.",
+                "properties": {
+                  "trackingDomains": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "add": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "remove": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "cookieBlocklist": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "add": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "remove": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "restrictedRegions": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "add": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "remove": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "restrictedChecklyLocations": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "add": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "remove": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "gtmDomain": {
+                    "type": "string"
+                  }
+                }
+              },
+              "rules": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Full custom rule set; only meaningful when `preset: \"none\"`.",
+                "required": [
+                  "trackingDomains",
+                  "cookieBlocklist",
+                  "restrictedRegions",
+                  "restrictedChecklyLocations",
+                  "gtmDomain"
+                ],
+                "properties": {
+                  "trackingDomains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "cookieBlocklist": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "restrictedRegions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "restrictedChecklyLocations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "gtmDomain": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

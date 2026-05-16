@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/redirect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly ApiCheck: URL returns an expected redirect status with the expected Location header. followRedirects is forced false so the test is meaningful.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

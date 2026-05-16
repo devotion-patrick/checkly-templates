@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/dotnet-health",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly ApiCheck: ASP.NET Core /health endpoint reports overall + per-component Healthy status.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@checkly-templates/xpath-spa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly PlaywrightCheck: load a JS-rendered page and assert DOM selectors. The SPA-aware counterpart to xpath-check.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.60.0",
+    "checkly": "^7.15.0"
+  }
+}
