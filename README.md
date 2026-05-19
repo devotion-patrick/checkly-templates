@@ -122,11 +122,20 @@ checkly-templates/
 ## Conventions
 
 **Tags.** Every check gets `source:checkly-templates` so anything
-managed by this repo is identifiable in the Checkly UI. When you set
+managed by this repo is identifiable in the Checkly UI. This tag is
+always emitted bare, never under a `tagPrefix`. When you set
 `project.tagPrefix` and `project.codename`, you additionally get
-`<prefix>.app:<codename>`, `<prefix>.env:<env>`, and
+`<prefix>.codename:<codename>`, `<prefix>.env:<env>`, and
 `<prefix>.kind:<kind>`. Free-form `tags: []` on project or entry are
 merged in.
+
+**`env` is inheritable.** Set `project.defaults.env` once and every
+entry inherits it. Set `env` on an individual entry to override the
+project default. Deploy fails fast if neither level supplies a value.
+
+**Check names.** Each check is named
+`{codename|project.name} - {env} - {kind} - {url}` automatically.
+Set `name` on an entry to override the auto-composed name verbatim.
 
 **Project = Checkly project.** `project.logicalId` is the Checkly
 project's `logicalId`. One config = one Checkly project, every check

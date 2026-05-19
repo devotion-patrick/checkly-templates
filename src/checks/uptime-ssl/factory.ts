@@ -1,5 +1,6 @@
 import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
+import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
@@ -32,7 +33,7 @@ export function factory(entry: UptimeSslEntry, ctx: ProjectContext): ApiCheck {
   );
 
   return new ApiCheck(entry.logicalId, {
-    name: `Uptime+SSL: ${ctx.project.name} - ${entry.env} - ${entry.url}`,
+    name: buildCheckName(ctx.project, entry),
     frequency: parseFrequency(frequencyName),
     // Checkly types `locations` as a strict `keyof Region` union; we
     // accept any string at the consumer boundary and trust the Checkly

@@ -1,30 +1,34 @@
 {
   "$schema": "../src/deploy/schema.json",
+  "$comment": "Example consumer config exercising every kind this repo ships. Use it as a starting point for your own .checkly/checks.json. The $schema reference above gives you autocomplete + inline validation in VS Code.",
   "project": {
+    "$comment": "One config file = one Checkly project. `logicalId` is the stable slug Checkly stores against; renaming it is destructive.",
     "logicalId": "acme-corporate-checks",
     "name": "Acme - Corporate Website",
     "codename": "acme",
     "tagPrefix": "acme",
     "tags": ["managed-by:checkly-templates"],
     "defaults": {
+      "$comment": "Project-level defaults inherited by every entry. Entries can still override per-check via their own `env` / `frequency` / `locations` fields.",
+      "env": "PROD",
       "frequency": "EVERY_15M",
       "locations": ["eu-central-1", "ap-southeast-2"]
     }
   },
   "checks": [
     {
+      "$comment": "Bread-and-butter uptime + SSL probe for the public homepage. Inherits env=PROD and the project default frequency/locations.",
       "kind": "uptime-ssl",
       "logicalId": "acme-home-prod-uptime",
-      "env": "PROD",
       "url": "https://www.acme.com",
       "sslCertificateExpiryThresholdDays": 30,
       "monitor": true,
       "smoke": false
     },
     {
+      "$comment": "Apex-domain redirect check: http://acme.com must 301 to https://www.acme.com/. Smoke-only — release gate, not a continuous monitor.",
       "kind": "redirect",
       "logicalId": "acme-apex-redirect-prod",
-      "env": "PROD",
       "url": "http://acme.com",
       "expectedStatus": 301,
       "expectedLocation": "https://www.acme.com/",
@@ -32,9 +36,9 @@
       "monitor": false
     },
     {
+      "$comment": "ASP.NET Core health-checks endpoint. `X-Health-Key` is sourced from a CI secret env var (HEALTH_KEY) — see src/checks/dotnet-health/README.md for the pipeline wiring. Overrides project frequency to a tighter 5m.",
       "kind": "dotnet-health",
       "logicalId": "acme-api-prod-health",
-      "env": "PROD",
       "url": "https://api.acme.com/health",
       "expectedComponents": ["sql", "redis"],
       "frequency": "EVERY_5M",
@@ -45,9 +49,9 @@
       ]
     },
     {
+      "$comment": "Static-HTML content assertion: the marketing homepage must have the expected <title> and must not contain placeholder copy.",
       "kind": "xpath",
       "logicalId": "acme-marketing-prod-meta",
-      "env": "PROD",
       "url": "https://www.acme.com",
       "expect": {
         "contains": ["<title>Acme - Home</title>"],
@@ -57,9 +61,10 @@
       "monitor": false
     },
     {
+      "$comment": "SPA content assertion via Playwright. Use this (not `xpath`) when the markup is client-rendered. Custom name override demonstrates the entry-level `name` field — when set, it wins over the auto-composed `{codename} - {env} - {kind} - {url}`.",
       "kind": "xpath-spa",
       "logicalId": "acme-app-prod-headline",
-      "env": "PROD",
+      "name": "App headline + error banner check (PROD)",
       "url": "https://app.acme.com",
       "waitUntil": "domcontentloaded",
       "expect": [
@@ -70,9 +75,9 @@
       "monitor": false
     },
     {
+      "$comment": "GDPR compliance probe: targeted (in-region) mode against the EU-UK-CA preset, plus a custom tracking domain the preset doesn't know about. Pinned to eu-central-1 so the page sees a restricted-region IP.",
       "kind": "gdpr",
       "logicalId": "acme-home-prod-gdpr",
-      "env": "PROD",
       "url": "https://www.acme.com",
       "complianceMode": "targeted",
       "preset": "eu-uk-ca",
@@ -85,9 +90,9 @@
       "monitor": true
     },
     {
+      "$comment": "Pre-launch smoke gate: every page-level SEO / a11y / hygiene rule we care about in one Playwright check. Daily cadence is fine because this primarily runs in the release pipeline.",
       "kind": "launch-readiness",
       "logicalId": "acme-home-launch-ready",
-      "env": "PROD",
       "url": "https://www.acme.com",
       "checks": {
         "placeholderText": true,

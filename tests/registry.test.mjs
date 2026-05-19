@@ -79,11 +79,17 @@ describe('registry: schema fragments', () => {
     }
   });
 
-  it('each schema fragment lists kind/logicalId/env/url in required', () => {
+  it('each schema fragment lists kind/logicalId/url in required (env is resolved at load-config)', () => {
     for (const m of MODULES) {
-      for (const f of ['kind', 'logicalId', 'env', 'url']) {
+      for (const f of ['kind', 'logicalId', 'url']) {
         assert.ok(m.schemaFragment.required.includes(f), `${m.kind} doesn't require ${f}`);
       }
+      // env is intentionally NOT schema-required — load-config resolves
+      // it from `project.defaults.env` when the entry omits it.
+      assert.ok(
+        !m.schemaFragment.required.includes('env'),
+        `${m.kind} requires env at the schema level but should let load-config resolve it`,
+      );
     }
   });
 });

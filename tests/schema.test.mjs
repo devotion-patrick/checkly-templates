@@ -86,7 +86,11 @@ const PER_KIND_REQUIRED = {
   gdpr: ['complianceMode'],
 };
 
-const COMMON_REQUIRED = ['kind', 'logicalId', 'env', 'url'];
+// `env` is intentionally NOT in COMMON_REQUIRED at the schema level —
+// entries may inherit it from `project.defaults.env`. load-config.ts
+// enforces that a value is supplied at one of the two levels; that
+// runtime check has its own coverage in tests/load-config.test.mjs.
+const COMMON_REQUIRED = ['kind', 'logicalId', 'url'];
 
 describe('schema: per-kind matrix', () => {
   for (const [kind, minimal] of Object.entries(MINIMAL_BY_KIND)) {

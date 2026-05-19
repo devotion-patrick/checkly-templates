@@ -159,7 +159,7 @@ const checksProperties = {
 export const launchReadinessSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url', 'checks'],
+  required: ['kind', 'logicalId', 'url', 'checks'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },

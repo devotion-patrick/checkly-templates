@@ -26,7 +26,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   cadence `EVERY_24H` — primarily a release-time gate but also
   reasonable as daily drift detection on security headers / meta tags.
 - Shared utilities under `src/shared/`: tag auto-emission
-  (`source:` / `app:` / `env:` / `kind:` triple), frequency helpers,
+  (`source:` / `codename:` / `env:` / `kind:` triple), frequency helpers,
   GDPR EU/UK/CA preset.
 - Pipeline templates: `templates/azuredevops/deploy.yml`,
   `.github/workflows/deploy.yml`.

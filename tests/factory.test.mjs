@@ -49,8 +49,8 @@ describe('uptime-ssl factory', () => {
       },
       { ...ctx, project: { ...ctx.project, tagPrefix: 'acme', codename: 'acme-site' } },
     );
-    assert.ok(c.tags.includes('acme.source:checkly-templates'), `tags: ${c.tags.join(', ')}`);
-    assert.ok(c.tags.includes('acme.app:acme-site'));
+    assert.ok(c.tags.includes('source:checkly-templates'), `tags: ${c.tags.join(', ')}`);
+    assert.ok(c.tags.includes('acme.codename:acme-site'));
     assert.ok(c.tags.includes('acme.env:PROD'));
     assert.ok(c.tags.includes('acme.kind:uptime-ssl'));
   });

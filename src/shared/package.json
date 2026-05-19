@@ -12,6 +12,7 @@
     "./types": "./types.ts",
     "./entry-schema": "./entry-schema.ts",
     "./locations": "./locations.ts",
+    "./check-name": "./check-name.ts",
     "./presets/gdpr-eu-uk-ca": "./presets/gdpr-eu-uk-ca.ts"
   },
   "peerDependencies": {

@@ -1,5 +1,6 @@
 import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
+import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
@@ -71,7 +72,10 @@ export function factory(entry: DotnetHealthEntry, ctx: ProjectContext): ApiCheck
   }
 
   return new ApiCheck(entry.logicalId, {
-    name: `Health: ${ctx.project.name} - ${entry.env} - ${targetUrl}`,
+    // Pass `targetUrl` as the url so the auto-composed name reflects the
+    // actual endpoint hit (entry.url + healthPath) rather than the bare
+    // base. Per-entry `name` overrides still win unchanged.
+    name: buildCheckName(ctx.project, { ...entry, url: targetUrl }),
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],
     activated: entry.activated ?? true,

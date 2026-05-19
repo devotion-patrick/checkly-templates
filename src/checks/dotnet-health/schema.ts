@@ -33,7 +33,7 @@ export interface DotnetHealthEntry extends CommonEntryFields {
 export const dotnetHealthSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url'],
+  required: ['kind', 'logicalId', 'url'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },

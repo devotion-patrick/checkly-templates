@@ -8,22 +8,19 @@ export interface BuildAutoTagsInput {
 }
 
 // Emits the canonical tag set for a check. `source:checkly-templates` is
-// always present (with the prefix if one is configured) so the Checkly UI
-// can identify checks managed by this repo at a glance. The
-// app/env/kind triple is only emitted when both `tagPrefix` and
-// `codename` are set, because the triple is meaningful only inside a
-// consumer's tagging namespace.
+// always emitted bare (never prefixed) so the Checkly UI can identify
+// every check managed by this repo at a glance, regardless of any
+// consumer-specific tag namespace. The codename/env/kind triple is only
+// emitted when both `tagPrefix` and `codename` are set, because the
+// triple is meaningful only inside a consumer's tagging namespace.
 export function buildAutoTags({ project, entry }: BuildAutoTagsInput): string[] {
   const prefix = project.tagPrefix?.trim();
-  const sourceTag = prefix
-    ? `${prefix}.source:${SOURCE_TAG_VALUE}`
-    : `source:${SOURCE_TAG_VALUE}`;
 
-  const tags: string[] = [sourceTag];
+  const tags: string[] = [`source:${SOURCE_TAG_VALUE}`];
 
   if (prefix && project.codename) {
     tags.push(
-      `${prefix}.app:${project.codename}`,
+      `${prefix}.codename:${project.codename}`,
       `${prefix}.env:${entry.env}`,
       `${prefix}.kind:${entry.kind}`,
     );

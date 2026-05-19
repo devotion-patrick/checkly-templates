@@ -12,7 +12,7 @@ export interface RedirectEntry extends CommonEntryFields {
 export const redirectSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url', 'expectedLocation'],
+  required: ['kind', 'logicalId', 'url', 'expectedLocation'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },

@@ -14,7 +14,7 @@ export interface UptimeSslEntry extends CommonEntryFields {
 export const uptimeSslSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url'],
+  required: ['kind', 'logicalId', 'url'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },

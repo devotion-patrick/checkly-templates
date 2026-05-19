@@ -17,6 +17,10 @@ const projectSchema: JsonSchemaFragment = {
   additionalProperties: false,
   required: ['logicalId', 'name'],
   properties: {
+    $comment: {
+      type: 'string',
+      description: 'Free-form annotation. Ignored at deploy time; useful for documenting project intent.',
+    },
     logicalId: {
       type: 'string',
       minLength: 1,
@@ -31,12 +35,12 @@ const projectSchema: JsonSchemaFragment = {
     codename: {
       type: 'string',
       minLength: 1,
-      description: 'Short app codename; required when tagPrefix is set so the auto-emitted app: tag has a value.',
+      description: 'Short app codename; required when tagPrefix is set so the auto-emitted codename: tag has a value.',
     },
     tagPrefix: {
       type: 'string',
       minLength: 1,
-      description: 'Prefix for the auto-emitted source/app/env/kind tag set. Omit for a plain `source:checkly-templates` tag.',
+      description: 'Prefix for the auto-emitted app/env/kind tags. The `source:checkly-templates` tag is always emitted bare.',
     },
     tags: {
       type: 'array',
@@ -47,6 +51,16 @@ const projectSchema: JsonSchemaFragment = {
       type: 'object',
       additionalProperties: false,
       properties: {
+        $comment: {
+          type: 'string',
+          description: 'Free-form annotation. Ignored at deploy time.',
+        },
+        env: {
+          type: 'string',
+          minLength: 1,
+          description:
+            'Default environment label (e.g. PROD / UAT) applied to every entry that does not set its own `env`. Drives the auto-emitted env tag.',
+        },
         frequency: { enum: [...FREQUENCY_NAMES] },
         locations: { type: 'array', items: { type: 'string' }, minItems: 1 },
       },
@@ -70,6 +84,10 @@ export function buildSchema(): JsonSchemaFragment {
     required: ['project', 'checks'],
     properties: {
       $schema: { type: 'string' },
+      $comment: {
+        type: 'string',
+        description: 'Free-form annotation. Ignored at deploy time; useful for documenting file-level intent.',
+      },
       project: projectSchema,
       checks: {
         type: 'array',

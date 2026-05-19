@@ -110,6 +110,82 @@ describe('loadConsumerConfig: schema-invalid config', () => {
   });
 });
 
+describe('loadConsumerConfig: env inheritance from project.defaults.env', () => {
+  it('fills entry.env from project.defaults.env when entry omits it', async () => {
+    const file = path.join(tmp, 'env-inherit-' + Date.now() + '.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        project: { logicalId: 'p', name: 'P', defaults: { env: 'PROD' } },
+        checks: [
+          {
+            kind: 'uptime-ssl',
+            logicalId: 'u',
+            // env intentionally omitted
+            url: 'https://example.com',
+            smoke: true,
+            monitor: false,
+          },
+        ],
+      }),
+    );
+    process.env.CHECKLY_TEMPLATES_CONFIG = file;
+    const { loadConsumerConfig } = await freshLoader();
+    const config = loadConsumerConfig();
+    assert.equal(config.checks[0].env, 'PROD');
+    fs.unlinkSync(file);
+  });
+
+  it('entry-level env wins over project.defaults.env', async () => {
+    const file = path.join(tmp, 'env-override-' + Date.now() + '.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        project: { logicalId: 'p', name: 'P', defaults: { env: 'PROD' } },
+        checks: [
+          {
+            kind: 'uptime-ssl',
+            logicalId: 'u',
+            env: 'UAT',
+            url: 'https://example.com',
+            smoke: true,
+            monitor: false,
+          },
+        ],
+      }),
+    );
+    process.env.CHECKLY_TEMPLATES_CONFIG = file;
+    const { loadConsumerConfig } = await freshLoader();
+    const config = loadConsumerConfig();
+    assert.equal(config.checks[0].env, 'UAT');
+    fs.unlinkSync(file);
+  });
+
+  it('throws with the offending logicalId(s) when neither level provides env', async () => {
+    const file = path.join(tmp, 'env-missing-' + Date.now() + '.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        project: { logicalId: 'p', name: 'P' },
+        checks: [
+          {
+            kind: 'uptime-ssl',
+            logicalId: 'orphan-check',
+            url: 'https://example.com',
+            smoke: true,
+            monitor: false,
+          },
+        ],
+      }),
+    );
+    process.env.CHECKLY_TEMPLATES_CONFIG = file;
+    const { loadConsumerConfig } = await freshLoader();
+    assert.throws(loadConsumerConfig, /orphan-check/);
+    assert.throws(loadConsumerConfig, /project\.defaults\.env/);
+    fs.unlinkSync(file);
+  });
+});
+
 describe('loadConsumerConfig: happy path', () => {
   it('returns the parsed config; buildContext leaves defaults undefined when project did not set them', async () => {
     const file = path.join(tmp, 'happy-' + Date.now() + '.json');

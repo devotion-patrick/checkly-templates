@@ -5,6 +5,13 @@ import { FREQUENCY_NAMES } from './frequency.ts';
 // across six kind modules.
 
 export const commonEntryProperties = {
+  // Standard JSON-Schema annotation keyword. Lets consumers leave
+  // inline prose alongside an entry (since the config is plain JSON
+  // and doesn't support `//` comments).
+  $comment: {
+    type: 'string',
+    description: 'Free-form annotation. Ignored at deploy time; useful for documenting why an entry exists.',
+  },
   logicalId: {
     type: 'string',
     minLength: 1,
@@ -14,12 +21,19 @@ export const commonEntryProperties = {
   env: {
     type: 'string',
     minLength: 1,
-    description: 'Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag.',
+    description:
+      'Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag. Required either here or on `project.defaults.env`; entry-level overrides project-level.',
   },
   url: {
     type: 'string',
     format: 'uri',
     description: 'Absolute URL the check exercises.',
+  },
+  name: {
+    type: 'string',
+    minLength: 1,
+    description:
+      'Override the auto-composed Checkly check name. When unset, the factory emits `{codename|project.name} - {env} - {kind} - {url}`.',
   },
   tags: {
     type: 'array',
@@ -53,7 +67,10 @@ export const commonEntryProperties = {
   },
 } as const;
 
-export const commonRequired = ['kind', 'logicalId', 'env', 'url'] as const;
+// `env` is intentionally NOT in commonRequired — entries may inherit it
+// from `project.defaults.env`. load-config.ts resolves the inheritance
+// before factories run and errors if neither level supplies a value.
+export const commonRequired = ['kind', 'logicalId', 'url'] as const;
 
 // JSON-Schema fragment to inject into each kind's top level via `allOf`,
 // enforcing that at least one of `smoke` / `monitor` is explicitly `true`.

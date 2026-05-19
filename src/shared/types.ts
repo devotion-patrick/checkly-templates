@@ -19,6 +19,7 @@ export interface ProjectBlock {
   tagPrefix?: string;
   tags?: string[];
   defaults?: {
+    env?: string;
     frequency?: FrequencyName;
     locations?: string[];
   };
@@ -27,8 +28,14 @@ export interface ProjectBlock {
 export interface CommonEntryFields {
   kind: string;
   logicalId: string;
-  env: string;
+  // Optional at the consumer-config level; load-config resolves it from
+  // `project.defaults.env` if omitted. By the time factories see an
+  // entry the field is always populated.
+  env?: string;
   url: string;
+  // Optional per-entry override for the auto-composed Checkly check
+  // name. When unset, factories emit `{codename|project.name} - {env} - {kind} - {url}`.
+  name?: string;
   tags?: string[];
   activated?: boolean;
   frequency?: FrequencyName;
@@ -44,6 +51,9 @@ export interface ProjectContext {
   project: ProjectBlock;
   // Undefined when the consumer config didn't set `project.defaults.*`.
   // Factories fall through to their kind-level defaults in that case.
+  // `defaultEnv` is consumed by load-config to resolve entry.env before
+  // the factory runs, not by factories directly.
+  defaultEnv?: string;
   defaultFrequency?: FrequencyName;
   defaultLocations?: string[];
 }

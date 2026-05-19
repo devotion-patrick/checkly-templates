@@ -45,7 +45,7 @@ export interface GdprEntry extends CommonEntryFields {
 export const gdprSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url', 'complianceMode'],
+  required: ['kind', 'logicalId', 'url', 'complianceMode'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },

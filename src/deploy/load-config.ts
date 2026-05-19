@@ -63,8 +63,36 @@ export function loadConsumerConfig(): ConsumerConfig {
     throw new Error(`${source} failed schema validation:\n${errs}`);
   }
 
-  cached = parsed as ConsumerConfig;
+  const config = parsed as ConsumerConfig;
+  resolveEntryEnv(config, source);
+  cached = config;
   return cached;
+}
+
+// `env` is optional on entries; consumers may set `project.defaults.env`
+// once and let every entry inherit it. We resolve the inheritance here
+// (rather than in factories) so the factory always sees a populated
+// `entry.env` and the auto-tag pipeline stays simple. Throws with a
+// pointer to the offending entry when neither level provides a value.
+function resolveEntryEnv(config: ConsumerConfig, source: string): void {
+  const fallback = config.project.defaults?.env;
+  const missing: string[] = [];
+  for (const entry of config.checks) {
+    if (!entry.env) {
+      if (fallback) {
+        entry.env = fallback;
+      } else {
+        missing.push(entry.logicalId);
+      }
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `${source}: the following check(s) have no \`env\` and ` +
+        `\`project.defaults.env\` is not set: ${missing.join(', ')}. ` +
+        'Set `env` on each entry, or set `project.defaults.env` once to apply to all.',
+    );
+  }
 }
 
 export function buildContext(config: ConsumerConfig): ProjectContext {
@@ -73,6 +101,9 @@ export function buildContext(config: ConsumerConfig): ProjectContext {
     // Pass through whatever the consumer set on `project.defaults` — or
     // leave undefined so kind-level defaults take effect. The precedence
     // each factory walks is: entry → project → kind → hardcoded fallback.
+    // `defaultEnv` is informational here; loadConsumerConfig already
+    // baked the fallback into every entry before this point.
+    defaultEnv: config.project.defaults?.env,
     defaultFrequency: config.project.defaults?.frequency,
     defaultLocations: config.project.defaults?.locations,
   };

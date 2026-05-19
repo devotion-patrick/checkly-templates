@@ -12,6 +12,7 @@ const jiti = createJiti(import.meta.url);
 const tags = await jiti.import(path.join(repoRoot, 'src', 'shared', 'tags.ts'));
 const frequency = await jiti.import(path.join(repoRoot, 'src', 'shared', 'frequency.ts'));
 const presets = await jiti.import(path.join(repoRoot, 'src', 'shared', 'presets', 'gdpr-eu-uk-ca.ts'));
+const checkName = await jiti.import(path.join(repoRoot, 'src', 'shared', 'check-name.ts'));
 
 describe('buildAutoTags', () => {
   it('emits bare `source:checkly-templates` when no prefix is set', () => {
@@ -22,22 +23,22 @@ describe('buildAutoTags', () => {
     assert.deepEqual(out, ['source:checkly-templates']);
   });
 
-  it('emits prefixed source + env + kind when prefix is set but codename is not', () => {
+  it('emits bare source + prefixed env + kind when prefix is set but codename is not', () => {
     const out = tags.buildAutoTags({
       project: { logicalId: 'p', name: 'P', tagPrefix: 'acme' },
       entry: { kind: 'gdpr', env: 'PROD' },
     });
-    assert.deepEqual(out, ['acme.source:checkly-templates', 'acme.env:PROD', 'acme.kind:gdpr']);
+    assert.deepEqual(out, ['source:checkly-templates', 'acme.env:PROD', 'acme.kind:gdpr']);
   });
 
-  it('emits full triple plus source when prefix AND codename are set', () => {
+  it('emits bare source plus prefixed codename/env/kind triple when prefix AND codename are set', () => {
     const out = tags.buildAutoTags({
       project: { logicalId: 'p', name: 'P', tagPrefix: 'acme', codename: 'acme-app' },
       entry: { kind: 'xpath', env: 'UAT' },
     });
     assert.deepEqual(out, [
-      'acme.source:checkly-templates',
-      'acme.app:acme-app',
+      'source:checkly-templates',
+      'acme.codename:acme-app',
       'acme.env:UAT',
       'acme.kind:xpath',
     ]);
@@ -69,16 +70,45 @@ describe('mergeTags', () => {
   });
 
   it('keeps the auto-emitted source tag at the head when called via the standard pattern', () => {
-    const auto = ['acme.source:checkly-templates', 'acme.kind:gdpr'];
+    const auto = ['source:checkly-templates', 'acme.kind:gdpr'];
     const project = ['managed-by:checkly-templates'];
     const entry = ['acme.kind:gdpr', 'team:platform']; // overlap on .kind:
     const out = tags.mergeTags(auto, project, entry);
-    assert.equal(out[0], 'acme.source:checkly-templates');
+    assert.equal(out[0], 'source:checkly-templates');
     // Overlap dedupes; entry-only tags still land.
     assert.ok(out.includes('team:platform'));
     assert.ok(out.includes('managed-by:checkly-templates'));
     // No duplicates anywhere.
     assert.equal(new Set(out).size, out.length);
+  });
+});
+
+describe('buildCheckName', () => {
+  const entry = {
+    kind: 'uptime-ssl',
+    env: 'PROD',
+    url: 'https://xbyk-accelerator.dvtn.dev',
+  };
+
+  it('uses project.codename when set', () => {
+    const out = checkName.buildCheckName(
+      { logicalId: 'p', name: 'Project', codename: 'xbyk-accelerator' },
+      entry,
+    );
+    assert.equal(out, 'xbyk-accelerator - PROD - uptime-ssl - https://xbyk-accelerator.dvtn.dev');
+  });
+
+  it('falls back to project.name when codename is unset', () => {
+    const out = checkName.buildCheckName({ logicalId: 'p', name: 'Project' }, entry);
+    assert.equal(out, 'Project - PROD - uptime-ssl - https://xbyk-accelerator.dvtn.dev');
+  });
+
+  it('honours per-entry name override verbatim', () => {
+    const out = checkName.buildCheckName(
+      { logicalId: 'p', name: 'Project', codename: 'xbyk' },
+      { ...entry, name: 'Custom check name' },
+    );
+    assert.equal(out, 'Custom check name');
   });
 });
 

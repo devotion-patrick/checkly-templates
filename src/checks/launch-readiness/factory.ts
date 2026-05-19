@@ -1,5 +1,6 @@
 import { PlaywrightCheck } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
+import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
@@ -24,7 +25,7 @@ export function factory(entry: LaunchReadinessEntry, ctx: ProjectContext): Playw
   );
 
   return new PlaywrightCheck(entry.logicalId, {
-    name: `Launch readiness: ${ctx.project.name} - ${entry.env} - ${entry.url}`,
+    name: buildCheckName(ctx.project, entry),
     playwrightConfigPath: './playwright.config.ts',
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],

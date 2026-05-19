@@ -16,7 +16,7 @@ export interface XpathEntry extends CommonEntryFields {
 export const xpathSchemaFragment = {
   type: 'object',
   additionalProperties: false,
-  required: ['kind', 'logicalId', 'env', 'url', 'expect'],
+  required: ['kind', 'logicalId', 'url', 'expect'],
   properties: {
     ...commonEntryProperties,
     kind: { const: KIND },
