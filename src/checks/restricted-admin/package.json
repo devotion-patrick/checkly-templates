@@ -1,0 +1,17 @@
+{
+  "name": "@checkly-templates/restricted-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly PlaywrightCheck: asserts a CMS/admin URL's access posture (must be gated, or public-by-choice) with a security-headers check when reachable. A thin, dedicated preset over launch-readiness's expectPubliclyAccessible mechanism — reuses its spec verbatim, doesn't duplicate the logic.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts",
+    "./env": "./env.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

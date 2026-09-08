@@ -14,6 +14,8 @@ const EXPECTED_KINDS = [
   'xpath-spa',
   'gdpr',
   'launch-readiness',
+  'custom-api',
+  'restricted-admin',
 ];
 
 describe('registry: shape', () => {
@@ -23,18 +25,20 @@ describe('registry: shape', () => {
     assert.deepEqual(kinds, [...EXPECTED_KINDS].sort());
   });
 
-  it('every module exposes kind, schemaFragment, defaults, factory', () => {
+  it('every module exposes kind, version, schemaFragment, defaults, factory', () => {
     for (const m of MODULES) {
       assert.equal(typeof m.kind, 'string', `${m.kind} missing kind string`);
+      assert.equal(typeof m.version, 'string', `${m.kind} missing version string`);
+      assert.ok(m.version.length > 0, `${m.kind} has an empty version`);
       assert.equal(typeof m.schemaFragment, 'object', `${m.kind} missing schemaFragment object`);
       assert.equal(typeof m.defaults, 'object', `${m.kind} missing defaults`);
       assert.equal(typeof m.factory, 'function', `${m.kind} missing factory function`);
     }
   });
 
-  it('isPlaywright is set on the three Playwright kinds and nothing else', () => {
+  it('isPlaywright is set on the four Playwright kinds and nothing else', () => {
     const pw = MODULES.filter((m) => m.isPlaywright === true).map((m) => m.kind).sort();
-    assert.deepEqual(pw, ['gdpr', 'launch-readiness', 'xpath-spa']);
+    assert.deepEqual(pw, ['gdpr', 'launch-readiness', 'restricted-admin', 'xpath-spa']);
   });
 
   it('REGISTRY is keyed by `kind`', () => {

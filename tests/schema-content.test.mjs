@@ -26,6 +26,8 @@ const EXPECTED_KINDS = [
   'xpath-spa',
   'gdpr',
   'launch-readiness',
+  'custom-api',
+  'restricted-admin',
 ];
 
 describe('schema-content: top-level shape', () => {

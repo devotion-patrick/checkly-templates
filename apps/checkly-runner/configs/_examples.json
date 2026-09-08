@@ -1,0 +1,115 @@
+{
+  "$schema": "../../../src/deploy/schema.json",
+  "project": {
+    "logicalId": "checkly-runner-checks",
+    "name": "Checkly Runner",
+    "defaults": {
+      "env": "DEV",
+      "frequency": "EVERY_15M",
+      "locations": ["eu-central-1"]
+    }
+  },
+  "checks": [
+    {
+      "kind": "uptime-ssl",
+      "logicalId": "example-uptime-ssl",
+      "url": "https://example.com",
+      "sslCertificateExpiryThresholdDays": 30,
+      "successStatusRange": { "min": 200, "max": 299 },
+      "smoke": true
+    },
+    {
+      "kind": "redirect",
+      "logicalId": "example-redirect",
+      "url": "http://example.com",
+      "expectedStatus": 301,
+      "expectedLocation": "https://example.com/",
+      "smoke": true
+    },
+    {
+      "kind": "dotnet-health",
+      "logicalId": "example-dotnet-health",
+      "url": "https://example.com",
+      "healthPath": "/health",
+      "expectedOverallStatus": "Healthy",
+      "expectedComponents": ["self", "database"],
+      "headers": [{ "key": "X-Health-Key", "value": "literal-value-or-use-valueFromEnv" }],
+      "smoke": true
+    },
+    {
+      "kind": "xpath",
+      "logicalId": "example-xpath",
+      "url": "https://example.com",
+      "expect": {
+        "contains": ["Example Domain"],
+        "notContains": ["Server Error", "Page Not Found"]
+      },
+      "smoke": true
+    },
+    {
+      "kind": "xpath-spa",
+      "logicalId": "example-xpath-spa",
+      "url": "https://example.com",
+      "waitUntil": "networkidle",
+      "expect": [
+        { "selector": "h1", "contains": "Example Domain" },
+        { "selector": "a", "attribute": "href", "contains": "iana.org" },
+        { "selector": "h1", "count": 1 }
+      ],
+      "smoke": true
+    },
+    {
+      "kind": "gdpr",
+      "logicalId": "example-gdpr",
+      "url": "https://example.com",
+      "complianceMode": "global",
+      "preset": "eu-uk-ca",
+      "overrides": {
+        "trackingDomains": { "add": ["custom-analytics.example"] }
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "example-launch-readiness",
+      "url": "https://example.com",
+      "waitUntil": "domcontentloaded",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": { "count": 1 },
+        "headingOrder": true,
+        "imgAlt": { "allowEmptyForDecorative": true },
+        "metaTitle": { "minLength": 10, "maxLength": 70 },
+        "metaDescription": { "minLength": 50, "maxLength": 160 },
+        "ogTags": ["og:title", "og:image", "og:description"],
+        "robotsTxt": true,
+        "sitemap": { "path": "/sitemap.xml", "spotCheckUrls": 3 },
+        "securityHeaders": ["X-Content-Type-Options", "Strict-Transport-Security"],
+        "notFoundPage": true,
+        "expectedScripts": ["googletagmanager.com"],
+        "recaptchaOnForms": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop"
+      },
+      "smoke": true
+    },
+    {
+      "kind": "custom-api",
+      "logicalId": "example-custom-api",
+      "url": "https://example.com",
+      "method": "GET",
+      "script": "if (response.statusCode !== 200) { throw new Error('Expected 200, got ' + response.statusCode); }",
+      "smoke": true
+    },
+    {
+      "kind": "restricted-admin",
+      "logicalId": "example-restricted-admin",
+      "url": "https://example.com",
+      "expectedAccess": "either",
+      "securityHeaders": ["X-Content-Type-Options"],
+      "smoke": true
+    }
+  ]
+}

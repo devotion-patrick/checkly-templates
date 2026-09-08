@@ -119,6 +119,28 @@
       },
       "smoke": true,
       "monitor": false
+    },
+    {
+      "$comment": "Custom API check: the whole validation is this user-authored script, run as the check's tearDownScript — no declarative assertions. Meant for logic that doesn't fit any other kind (e.g. authored in an external UI's script editor).",
+      "kind": "custom-api",
+      "logicalId": "acme-orders-api-smoke",
+      "url": "https://api.acme.com/orders",
+      "method": "POST",
+      "body": "{\"customerId\": \"demo\"}",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }],
+      "script": "const body = JSON.parse(response.body); if (response.statusCode !== 201) throw new Error('expected 201, got ' + response.statusCode); if (!body.orderId) throw new Error('missing orderId in response');",
+      "smoke": true,
+      "monitor": false
+    },
+    {
+      "$comment": "Restricted-admin: the CMS login must require auth — a 2xx response here is itself the failure. A dedicated kind, not a launch-readiness config recipe, but it delegates to launch-readiness's expectPubliclyAccessible mechanism under the hood.",
+      "kind": "restricted-admin",
+      "logicalId": "acme-cms-admin-gated",
+      "url": "https://www.acme.com/admin",
+      "expectedAccess": "gated",
+      "securityHeaders": ["X-Frame-Options", "Strict-Transport-Security"],
+      "smoke": true,
+      "monitor": false
     }
   ]
 }

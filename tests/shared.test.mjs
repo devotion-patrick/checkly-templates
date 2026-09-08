@@ -51,6 +51,29 @@ describe('buildAutoTags', () => {
     });
     assert.deepEqual(out, ['source:checkly-templates']);
   });
+
+  it('omits tmpl-version when templateVersion is not passed (back-compat)', () => {
+    const out = tags.buildAutoTags({
+      project: { logicalId: 'p', name: 'P' },
+      entry: { kind: 'gdpr', env: 'PROD' },
+    });
+    assert.ok(!out.some((t) => t.startsWith('tmpl-version:')));
+  });
+
+  it('emits a bare tmpl-version:<kind>@<version> tag when templateVersion is passed, before any prefixed tags', () => {
+    const out = tags.buildAutoTags({
+      project: { logicalId: 'p', name: 'P', tagPrefix: 'acme', codename: 'acme-app' },
+      entry: { kind: 'gdpr', env: 'PROD' },
+      templateVersion: '1.0.0',
+    });
+    assert.deepEqual(out, [
+      'source:checkly-templates',
+      'tmpl-version:gdpr@1.0.0',
+      'acme.codename:acme-app',
+      'acme.env:PROD',
+      'acme.kind:gdpr',
+    ]);
+  });
 });
 
 describe('mergeTags', () => {

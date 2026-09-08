@@ -1,0 +1,18 @@
+{
+  "name": "@checkly-templates/playwright-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs the Playwright-based check kinds (gdpr, xpath-spa, launch-readiness) directly via local Playwright. No Checkly account, API key, or cloud test session — and no dependency on the `checkly` package at all. The ApiCheck kinds (uptime-ssl, redirect, dotnet-health, xpath) are Checkly's own assertion DSL, not Playwright specs, so they're out of scope here; use apps/checkly-runner for those.",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "jiti": "^2.7.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

@@ -1,9 +1,10 @@
 import type { KindModule } from '../../deploy/types.ts';
 import { defaults, factory } from './factory.ts';
-import { KIND, uptimeSslSchemaFragment, type UptimeSslEntry } from './schema.ts';
+import { KIND, KIND_VERSION, uptimeSslSchemaFragment, type UptimeSslEntry } from './schema.ts';
 
 export const uptimeSslModule: KindModule<UptimeSslEntry> = {
   kind: KIND,
+  version: KIND_VERSION,
   schemaFragment: uptimeSslSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

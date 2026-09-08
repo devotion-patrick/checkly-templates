@@ -2,8 +2,22 @@
 
 ApiCheck kind tailored to ASP.NET Core's standard
 [Health Checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks)
-JSON response. Asserts overall status plus any named components you
-care about.
+JSON response, but the status field's path and its healthy/degraded
+values are all overridable — so it also covers any other JSON
+health-check convention (Spring Boot Actuator's `UP`/`DOWN`, a custom
+in-house shape, etc.), not just ASP.NET Core's.
+
+**Severity, not just pass/fail**: a *degraded* response is reported as a
+non-blocking warning by default (visible in the check's log, doesn't
+fail the check) — only *unhealthy* fails it. Set `failOnDegraded: true`
+per entry if you want zero tolerance instead. This is why the check no
+longer relies on declarative `statusCode`/`jsonBody` assertions: ASP.NET
+Core's default status-code mapping sends the *same* HTTP 200 for both
+Healthy and Degraded, so a status-code check alone can't see Degraded at
+all, and a strict body-equality check can't tell "degraded" from
+"unhealthy" — both just "don't equal Healthy". A teardown script
+(`tearDownScript`, see [Checkly's setup/teardown docs](https://www.checklyhq.com/docs/detect/synthetic-monitoring/api-checks/setup-and-teardown/))
+inspects the real response body and classifies it explicitly instead.
 
 ## Consumer config
 
@@ -28,11 +42,30 @@ Two shapes work, pick whichever reads better:
 }
 ```
 
+If your endpoint isn't ASP.NET Core's exact response shape:
+
+```json
+{
+  "kind": "dotnet-health",
+  "url": "https://api.acme.com/actuator/health",
+  "statusPath": "$.status",
+  "componentsPath": "$.components['{name}'].status",
+  "healthyValues": ["UP"],
+  "degradedValues": [],
+  "expectedComponents": ["db", "diskSpace"]
+}
+```
+
 | Field                   | Required | Notes                                                          |
 | ----------------------- | -------- | -------------------------------------------------------------- |
 | `healthPath`            | no       | If set, appended to `url`. Leave unset if `url` is already the health endpoint |
-| `expectedComponents`    | no       | Each must report status Healthy in `$.results.<name>.status`   |
-| `expectedOverallStatus` | no       | Value `$.status` must equal. Default `Healthy`                 |
+| `statusPath`            | no       | JSONPath to the overall status field. Default `$.status` |
+| `componentsPath`        | no       | JSONPath template for a component's status, `{name}` substituted. Default `$.results['{name}'].status` — **note**: the `AspNetCore.HealthChecks.UI.Client` package's default writer actually nests components under `entries`, not `results`; check your real response and override if needed |
+| `expectedComponents`    | no       | Named components checked at `componentsPath` with the same healthy/degraded/unhealthy severity as the overall status |
+| `healthyValues`         | no       | Values that count as fully healthy. Default `["Healthy"]` |
+| `degradedValues`        | no       | Values that count as degraded (a warning, not a failure — unless `failOnDegraded`). Default `["Degraded"]`. Anything not healthy or degraded fails the check |
+| `failOnDegraded`        | no       | Treat degraded the same as unhealthy (hard fail). Default `false` |
+| `expectedOverallStatus` | no       | Deprecated alias for `healthyValues: [expectedOverallStatus]`. Only used when `healthyValues` is unset |
 | `headers`               | no       | Extra request headers. Use `{{VAR}}` to reference Checkly env vars for secrets (see below) |
 
 ## Authenticating to the health endpoint
@@ -150,5 +183,11 @@ something like:
   }
 }
 ```
+
+This is the shape this kind's defaults assume (`componentsPath: "$.results['{name}'].status"`). If your
+endpoint instead uses the `AspNetCore.HealthChecks.UI.Client` NuGet
+package's own default writer, its response nests components under
+`entries`, not `results` — set `"componentsPath": "$.entries['{name}'].status"`
+if that's what your endpoint actually returns.
 
 Default schedule: `EVERY_5M` from `eu-central-1` + `ap-southeast-2`.

@@ -1,9 +1,10 @@
 import type { KindModule } from '../../deploy/types.ts';
 import { defaults, factory } from './factory.ts';
-import { KIND, dotnetHealthSchemaFragment, type DotnetHealthEntry } from './schema.ts';
+import { KIND, KIND_VERSION, dotnetHealthSchemaFragment, type DotnetHealthEntry } from './schema.ts';
 
 export const dotnetHealthModule: KindModule<DotnetHealthEntry> = {
   kind: KIND,
+  version: KIND_VERSION,
   schemaFragment: dotnetHealthSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

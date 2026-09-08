@@ -23,6 +23,14 @@ export interface KindDefaults {
 
 export interface KindModule<E extends CommonEntryFields = CommonEntryFields> {
   kind: string;
+  // This kind's KIND_VERSION (see each kind's schema.ts) — the same
+  // value the factory emits as a `tmpl-version:<kind>@<version>` tag on
+  // every check it produces. Exposed here so a consumer of this
+  // registry (e.g. a UI that pushes checks) can read "what's the latest
+  // template version for this kind" without having to synthesize a
+  // check first, and compare it against the tag on an already-deployed
+  // one to decide whether a newer template is available to push.
+  version: string;
   schemaFragment: JsonSchemaFragment;
   defaults: KindDefaults;
   // Side-effect: instantiates a Checkly construct that registers itself

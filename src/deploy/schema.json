@@ -471,12 +471,50 @@
                   "type": "string",
                   "minLength": 1
                 },
-                "description": "Named components whose status must report Healthy. Maps to `$.results.<name>.status`."
+                "description": "Named components checked at componentsPath (default \"$.results['{name}'].status\") with the same healthy/degraded/unhealthy severity as the overall status."
               },
               "expectedOverallStatus": {
                 "type": "string",
-                "default": "Healthy",
-                "description": "Value $.status must equal."
+                "description": "Deprecated alias for healthyValues: [expectedOverallStatus]. Only used when healthyValues is unset."
+              },
+              "statusPath": {
+                "type": "string",
+                "default": "$.status",
+                "description": "JSONPath to the overall status field."
+              },
+              "componentsPath": {
+                "type": "string",
+                "default": "$.results['{name}'].status",
+                "description": "JSONPath template for a named component's status; \"{name}\" is substituted per entry in expectedComponents. The AspNetCore.HealthChecks.UI.Client default writer nests components under \"entries\", not \"results\" — verify against your real response."
+              },
+              "healthyValues": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "default": [
+                  "Healthy"
+                ],
+                "description": "Values that count as fully healthy."
+              },
+              "degradedValues": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "default": [
+                  "Degraded"
+                ],
+                "description": "Values that count as degraded — a warning, not a failure, unless failOnDegraded is true. Anything not healthy or degraded fails the check."
+              },
+              "failOnDegraded": {
+                "type": "boolean",
+                "default": false,
+                "description": "Treat degraded the same as unhealthy (hard fail) instead of a non-blocking warning."
               },
               "headers": {
                 "type": "array",
@@ -1212,6 +1250,23 @@
                 ],
                 "default": "domcontentloaded"
               },
+              "followJsRedirect": {
+                "type": "boolean",
+                "default": false,
+                "description": "Follow a client-side (JS) redirect that fires after load (e.g. /admin → login) and audit the destination, instead of reporting the redirect and skipping DOM checks."
+              },
+              "expectPubliclyAccessible": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "const": "either"
+                  }
+                ],
+                "default": true,
+                "description": "Whether this URL should be reachable without authentication. false: must be gated — a 2xx response fails (\"publicly accessible but shouldn't be\"), a non-2xx response passes and skips all other checks. \"either\": CMS endpoint where public-vs-gated is a legitimate per-client choice — never fails on accessibility, skips content/SEO checks, still runs securityHeaders when reachable (a 5xx still fails)."
+              },
               "checks": {
                 "type": "object",
                 "additionalProperties": false,
@@ -1419,8 +1474,332 @@
                       "drop",
                       "add"
                     ]
+                  },
+                  "httpsRedirect": {
+                    "type": "boolean"
                   }
                 }
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "url",
+              "script"
+            ],
+            "properties": {
+              "$comment": {
+                "type": "string",
+                "description": "Free-form annotation. Ignored at deploy time; useful for documenting why an entry exists."
+              },
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag. Required either here or on `project.defaults.env`; entry-level overrides project-level."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Override the auto-composed Checkly check name. When unset, the factory emits `{codename|project.name} - {env} - {kind} - {url}`."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "custom-api"
+              },
+              "method": {
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "HEAD"
+                ],
+                "default": "GET"
+              },
+              "body": {
+                "type": "string",
+                "description": "Optional request body."
+              },
+              "headers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Literal header value."
+                    },
+                    "valueFromEnv": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Name of a process env var read at deploy time. Becomes a per-check Checkly env var; the header value is set to `{{<name>}}` which Checkly resolves server-side at run time. Use this for secrets so they live in your CI vault, not this config file."
+                    }
+                  },
+                  "oneOf": [
+                    {
+                      "required": [
+                        "value"
+                      ],
+                      "not": {
+                        "required": [
+                          "valueFromEnv"
+                        ]
+                      }
+                    },
+                    {
+                      "required": [
+                        "valueFromEnv"
+                      ],
+                      "not": {
+                        "required": [
+                          "value"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "description": "Extra request headers. Each item sets exactly one of `value` (literal) or `valueFromEnv` (CI-sourced, per-check secret)."
+              },
+              "script": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Full validation script, run as this check's tearDownScript: `response` (status/body/headers), `request`, and `process.env` are in scope; throw an Error to fail the check, console.log for non-blocking notes."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "url",
+              "expectedAccess"
+            ],
+            "properties": {
+              "$comment": {
+                "type": "string",
+                "description": "Free-form annotation. Ignored at deploy time; useful for documenting why an entry exists."
+              },
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag. Required either here or on `project.defaults.env`; entry-level overrides project-level."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Override the auto-composed Checkly check name. When unset, the factory emits `{codename|project.name} - {env} - {kind} - {url}`."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "restricted-admin"
+              },
+              "expectedAccess": {
+                "enum": [
+                  "gated",
+                  "either"
+                ],
+                "description": "\"gated\": must require auth, reachable-without-it fails. \"either\": public access is an accepted per-client choice; only securityHeaders is checked."
+              },
+              "securityHeaders": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Response headers required when the endpoint is reachable."
+              },
+              "waitUntil": {
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "domcontentloaded"
+              },
+              "followJsRedirect": {
+                "type": "boolean",
+                "default": false,
+                "description": "Follow a client-side (JS) redirect that fires after load, instead of reporting it and stopping."
               }
             },
             "allOf": [

@@ -1,0 +1,21 @@
+{
+  "name": "@checkly-templates/checkly-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone, self-contained Checkly project that consumes the template kinds as libraries. Owns its own checkly.config.ts + checks.json so `npx checkly test` runs the checks ad-hoc (no monitors deployed) directly from this folder.",
+  "scripts": {
+    "test": "checkly test",
+    "test:record": "checkly test --record"
+  },
+  "//workspaceDeps": "The @checkly-templates/* workspace packages are intentionally not listed here. They resolve via npm-workspace hoisting at the repo root. Listing them would make Checkly's cloud runner try to `npm install` them from the public registry and 404, since they're unpublished.",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "checkly": "^7.15.0",
+    "jiti": "^2.7.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

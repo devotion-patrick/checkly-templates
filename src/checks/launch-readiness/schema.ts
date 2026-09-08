@@ -2,6 +2,14 @@ import { commonEntryProperties, smokeOrMonitorConstraint } from '@checkly-templa
 import type { CommonEntryFields } from '@checkly-templates/shared/types';
 
 export const KIND = 'launch-readiness' as const;
+// Bumped whenever this kind's factory/schema logic changes in a way
+// that matters to an already-deployed check — i.e. pushing the same
+// consumer config again would produce a materially different construct.
+// Emitted as a `tmpl-version:<kind>@<version>` tag on every check (see
+// @checkly-templates/shared/tags), so a consumer of this registry (e.g.
+// a UI that pushes checks) can compare a deployed check's tag against
+// this constant to know whether a newer template is available to push.
+export const KIND_VERSION = '1.0.0';
 
 // Each check below is independently togglable. Boolean `true` enables the
 // check with its default options; an options object enables with overrides;
@@ -74,6 +82,10 @@ export interface LaunchReadinessChecks {
    *  "add" (no-slash must redirect to trailing-slash). The opposite shape
    *  is also expected to fail with a 3xx, not 200. */
   trailingSlashRedirect?: 'drop' | 'add';
+
+  /** The plain-http variant of this URL's host must 301/302 to https.
+   *  Probed regardless of which scheme the configured `url` itself uses. */
+  httpsRedirect?: boolean;
 }
 
 export interface LaunchReadinessEntry extends CommonEntryFields {
@@ -81,6 +93,36 @@ export interface LaunchReadinessEntry extends CommonEntryFields {
   checks: LaunchReadinessChecks;
   /** waitUntil for the main page.goto. Default "domcontentloaded". */
   waitUntil?: 'load' | 'domcontentloaded' | 'networkidle';
+  /**
+   * Some pages perform a client-side (JS) redirect *after* load — e.g. an
+   * admin URL that returns 200 then bounces to a login. That navigation
+   * destroys the page context mid-check. Default (false): report it as a
+   * finding and skip the DOM checks. Set true to follow the redirect and
+   * audit the destination page instead.
+   */
+  followJsRedirect?: boolean;
+  /**
+   * Whether this URL is expected to be reachable without authentication.
+   * Default true (a normal page — non-2xx is a failure).
+   *
+   * Set false for CMS/admin endpoints that must be gated — e.g. an
+   * "/admin" URL that should 401/403, not serve a page:
+   *   - a 2xx response is itself the failure ("publicly accessible but
+   *     shouldn't be"); no other checks run.
+   *   - a non-2xx response (401/403/etc.) is the expected, passing state,
+   *     and all other checks are skipped — there's no real page to audit.
+   *
+   * Set "either" for a CMS/admin endpoint where public-vs-gated is a
+   * legitimate per-client choice, not a defect either way (e.g. the
+   * client's editors need to log in from arbitrary locations, so there's
+   * no IP allowlist or Basic Auth in front). Never fails on accessibility
+   * alone; content/SEO checks (canonical, OG tags, sitemap, robots.txt,
+   * meta*, images, headings, notFoundPage, redirects) are skipped since
+   * they don't apply to a login page, but `securityHeaders` still runs
+   * when the page is reachable — those headers matter regardless of
+   * whether the endpoint is meant to be public. A 5xx is still a failure.
+   */
+  expectPubliclyAccessible?: boolean | 'either';
 }
 
 // Helper: a JSON-Schema fragment for "boolean OR options object".
@@ -154,6 +196,7 @@ const checksProperties = {
   recaptchaOnForms: { type: 'boolean' },
   lowercaseUrls: { type: 'boolean' },
   trailingSlashRedirect: { enum: ['drop', 'add'] },
+  httpsRedirect: { type: 'boolean' },
 } as const;
 
 export const launchReadinessSchemaFragment = {
@@ -166,6 +209,18 @@ export const launchReadinessSchemaFragment = {
     waitUntil: {
       enum: ['load', 'domcontentloaded', 'networkidle'],
       default: 'domcontentloaded',
+    },
+    followJsRedirect: {
+      type: 'boolean',
+      default: false,
+      description:
+        'Follow a client-side (JS) redirect that fires after load (e.g. /admin → login) and audit the destination, instead of reporting the redirect and skipping DOM checks.',
+    },
+    expectPubliclyAccessible: {
+      oneOf: [{ type: 'boolean' }, { const: 'either' }],
+      default: true,
+      description:
+        'Whether this URL should be reachable without authentication. false: must be gated — a 2xx response fails ("publicly accessible but shouldn\'t be"), a non-2xx response passes and skips all other checks. "either": CMS endpoint where public-vs-gated is a legitimate per-client choice — never fails on accessibility, skips content/SEO checks, still runs securityHeaders when reachable (a 5xx still fails).',
     },
     checks: {
       type: 'object',

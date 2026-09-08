@@ -128,12 +128,29 @@ describe('launch-readiness schema: enum / boolean checks', () => {
     assert.equal(valid, false);
   });
 
-  for (const key of ['favicon', 'headingOrder', 'robotsTxt', 'recaptchaOnForms', 'lowercaseUrls']) {
+  for (const key of ['favicon', 'headingOrder', 'robotsTxt', 'recaptchaOnForms', 'lowercaseUrls', 'httpsRedirect']) {
     it(`${key} accepts boolean`, () => {
       const { valid, errors } = v({ ...minimal(), checks: { [key]: true } });
       assert.equal(valid, true, JSON.stringify(errors));
     });
   }
+
+  for (const key of ['followJsRedirect', 'expectPubliclyAccessible']) {
+    it(`${key} accepts boolean at the entry level`, () => {
+      const { valid, errors } = v({ ...minimal(), [key]: false });
+      assert.equal(valid, true, JSON.stringify(errors));
+    });
+  }
+
+  it('expectPubliclyAccessible accepts "either"', () => {
+    const { valid, errors } = v({ ...minimal(), expectPubliclyAccessible: 'either' });
+    assert.equal(valid, true, JSON.stringify(errors));
+  });
+
+  it('expectPubliclyAccessible rejects other strings', () => {
+    const { valid } = v({ ...minimal(), expectPubliclyAccessible: 'maybe' });
+    assert.equal(valid, false);
+  });
 });
 
 describe('launch-readiness factory: CHECK_PARAMS contract', () => {
@@ -180,5 +197,64 @@ describe('launch-readiness factory: CHECK_PARAMS contract', () => {
     );
     const params = JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
     assert.equal(params.waitUntil, 'networkidle');
+  });
+
+  it('defaults expectPubliclyAccessible to true', () => {
+    const ctx = { project: baseProject, defaultLocations: ['eu-central-1'] };
+    const c = tryFactory(
+      'launch-readiness',
+      {
+        kind: 'launch-readiness',
+        logicalId: 'lr-public-default',
+        env: 'PROD',
+        url: 'https://example.com',
+        checks: { favicon: true },
+        smoke: true,
+        monitor: false,
+      },
+      ctx,
+    );
+    const params = JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    assert.equal(params.expectPubliclyAccessible, true);
+  });
+
+  it('honours expectPubliclyAccessible: false override', () => {
+    const ctx = { project: baseProject, defaultLocations: ['eu-central-1'] };
+    const c = tryFactory(
+      'launch-readiness',
+      {
+        kind: 'launch-readiness',
+        logicalId: 'lr-public-false',
+        env: 'PROD',
+        url: 'https://example.com/admin',
+        expectPubliclyAccessible: false,
+        checks: { favicon: true },
+        smoke: true,
+        monitor: false,
+      },
+      ctx,
+    );
+    const params = JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    assert.equal(params.expectPubliclyAccessible, false);
+  });
+
+  it('honours expectPubliclyAccessible: "either" override', () => {
+    const ctx = { project: baseProject, defaultLocations: ['eu-central-1'] };
+    const c = tryFactory(
+      'launch-readiness',
+      {
+        kind: 'launch-readiness',
+        logicalId: 'lr-public-either',
+        env: 'PROD',
+        url: 'https://example.com/admin',
+        expectPubliclyAccessible: 'either',
+        checks: { securityHeaders: ['Strict-Transport-Security'] },
+        smoke: true,
+        monitor: false,
+      },
+      ctx,
+    );
+    const params = JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    assert.equal(params.expectPubliclyAccessible, 'either');
   });
 });

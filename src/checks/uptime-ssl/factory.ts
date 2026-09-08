@@ -5,7 +5,7 @@ import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
-import { type UptimeSslEntry } from './schema.ts';
+import { KIND_VERSION, type UptimeSslEntry } from './schema.ts';
 
 export const defaults: KindDefaults = {
   frequency: 'EVERY_5M',
@@ -27,7 +27,7 @@ export function factory(entry: UptimeSslEntry, ctx: ProjectContext): ApiCheck {
   void DEFAULT_THRESHOLD_DAYS;
 
   const tags = mergeTags(
-    buildAutoTags({ project: ctx.project, entry }),
+    buildAutoTags({ project: ctx.project, entry, templateVersion: KIND_VERSION }),
     ctx.project.tags,
     entry.tags,
   );

@@ -7,7 +7,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { tryFactory, baseContext } from './helpers.mjs';
+import { tryFactory, baseContext, REGISTRY } from './helpers.mjs';
 
 const ctx = baseContext;
 
@@ -65,6 +65,19 @@ describe('uptime-ssl factory', () => {
       monitor: true,
     });
     assert.ok(c.tags.includes('source:checkly-templates'));
+  });
+
+  it('emits a tmpl-version:<kind>@<version> tag matching the registry-exposed module version', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'u5',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+    });
+    const expected = `tmpl-version:uptime-ssl@${REGISTRY['uptime-ssl'].version}`;
+    assert.ok(c.tags.includes(expected), `tags: ${c.tags.join(', ')}, expected: ${expected}`);
   });
 });
 
@@ -240,7 +253,7 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
     );
   });
 
-  it('emits no environmentVariables when no header uses valueFromEnv', () => {
+  it('emits only DOTNET_HEALTH_PARAMS when no header uses valueFromEnv', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'dh-no-env',
@@ -249,9 +262,10 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
       smoke: true,
       monitor: false,
     });
-    // Checkly's construct normalises an absent env-var list to []; we
-    // care that nothing got added, not the exact representation.
-    assert.equal((c.environmentVariables ?? []).length, 0);
+    // The severity-check params always ride along as an env var; only a
+    // header's valueFromEnv adds anything beyond that one.
+    const keys = c.environmentVariables.map((v) => v.key);
+    assert.deepEqual(keys, ['DOTNET_HEALTH_PARAMS']);
   });
 
   it('mixes literal and valueFromEnv headers in declared order', () => {
@@ -278,8 +292,17 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
   });
 });
 
-describe('dotnet-health factory: assertions', () => {
-  it('default overall status is "Healthy"', () => {
+describe('dotnet-health factory: severity params (via DOTNET_HEALTH_PARAMS + tearDownScript)', () => {
+  // Declarative statusCode/jsonBody assertions can't express "degraded is
+  // a warning, unhealthy is a failure" — see factory.ts's TEARDOWN_SCRIPT
+  // comment. All of that logic now lives in a teardown script whose
+  // parameters travel via this env var, so these tests assert on the
+  // params rather than a request.assertions array that no longer exists.
+  function params(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'DOTNET_HEALTH_PARAMS').value);
+  }
+
+  it('defaults healthyValues to ["Healthy"] and degradedValues to ["Degraded"]', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'da1',
@@ -288,11 +311,41 @@ describe('dotnet-health factory: assertions', () => {
       smoke: false,
       monitor: true,
     });
-    // statusCode(200) + jsonBody($.status === Healthy) = 2 assertions baseline
-    assert.equal(c.request.assertions.length, 2);
+    const p = params(c);
+    assert.deepEqual(p.healthyValues, ['Healthy']);
+    assert.deepEqual(p.degradedValues, ['Degraded']);
+    assert.equal(p.statusPath, '$.status');
+    assert.equal(p.failOnDegraded, false);
   });
 
-  it('adds one assertion per expectedComponent', () => {
+  it('expectedOverallStatus still works as a healthyValues fallback', () => {
+    const c = tryFactory('dotnet-health', {
+      kind: 'dotnet-health',
+      logicalId: 'da1b',
+      env: 'PROD',
+      url: 'https://api.example.com/health',
+      expectedOverallStatus: 'UP',
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).healthyValues, ['UP']);
+  });
+
+  it('healthyValues overrides expectedOverallStatus when both are set', () => {
+    const c = tryFactory('dotnet-health', {
+      kind: 'dotnet-health',
+      logicalId: 'da1c',
+      env: 'PROD',
+      url: 'https://api.example.com/health',
+      expectedOverallStatus: 'UP',
+      healthyValues: ['UP', 'STARTING'],
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).healthyValues, ['UP', 'STARTING']);
+  });
+
+  it('passes expectedComponents through untouched', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'da2',
@@ -302,8 +355,41 @@ describe('dotnet-health factory: assertions', () => {
       smoke: false,
       monitor: true,
     });
-    // 2 baseline + 3 component assertions.
-    assert.equal(c.request.assertions.length, 5);
+    assert.deepEqual(params(c).expectedComponents, ['sql', 'redis', 'queue']);
+  });
+
+  it('supports overriding statusPath/componentsPath/degradedValues/failOnDegraded for non-ASP.NET conventions', () => {
+    const c = tryFactory('dotnet-health', {
+      kind: 'dotnet-health',
+      logicalId: 'da3',
+      env: 'PROD',
+      url: 'https://api.example.com/actuator/health',
+      statusPath: '$.status',
+      componentsPath: "$.components['{name}'].status",
+      healthyValues: ['UP'],
+      degradedValues: [],
+      failOnDegraded: true,
+      expectedComponents: ['db'],
+      smoke: false,
+      monitor: true,
+    });
+    const p = params(c);
+    assert.equal(p.componentsPath, "$.components['{name}'].status");
+    assert.deepEqual(p.healthyValues, ['UP']);
+    assert.deepEqual(p.degradedValues, []);
+    assert.equal(p.failOnDegraded, true);
+  });
+
+  it('always attaches a tearDownScript with inline content', () => {
+    const c = tryFactory('dotnet-health', {
+      kind: 'dotnet-health',
+      logicalId: 'da4',
+      env: 'PROD',
+      url: 'https://api.example.com/health',
+      smoke: false,
+      monitor: true,
+    });
+    assert.ok(c.tearDownScript?.content?.includes('DOTNET_HEALTH_PARAMS'));
   });
 });
 
@@ -435,6 +521,181 @@ describe('gdpr factory', () => {
   });
 });
 
+describe('custom-api factory', () => {
+  it('defaults method to GET and forces followRedirects: false', () => {
+    const c = tryFactory('custom-api', {
+      kind: 'custom-api',
+      logicalId: 'ca1',
+      env: 'PROD',
+      url: 'https://api.example.com/status',
+      script: "if (response.statusCode !== 200) throw new Error('fail');",
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(c.request.method, 'GET');
+    assert.equal(c.request.followRedirects, false);
+  });
+
+  it('honours an explicit method and body', () => {
+    const c = tryFactory('custom-api', {
+      kind: 'custom-api',
+      logicalId: 'ca2',
+      env: 'PROD',
+      url: 'https://api.example.com/orders',
+      method: 'POST',
+      body: '{"foo":"bar"}',
+      script: "if (response.statusCode !== 201) throw new Error('fail');",
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(c.request.method, 'POST');
+    assert.equal(c.request.body, '{"foo":"bar"}');
+  });
+
+  it('wires entry.script verbatim as tearDownScript.content — no declarative assertions', () => {
+    const script = "console.log('checking'); if (response.statusCode >= 500) throw new Error('down');";
+    const c = tryFactory('custom-api', {
+      kind: 'custom-api',
+      logicalId: 'ca3',
+      env: 'PROD',
+      url: 'https://api.example.com/status',
+      script,
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(c.tearDownScript.content, script);
+    assert.equal(c.request.assertions, undefined);
+  });
+
+  it('resolves headers the same way as dotnet-health (literal + valueFromEnv)', () => {
+    process.env.TEST_CUSTOM_API_KEY = 'sekret';
+    try {
+      const c = tryFactory('custom-api', {
+        kind: 'custom-api',
+        logicalId: 'ca4',
+        env: 'PROD',
+        url: 'https://api.example.com/status',
+        headers: [
+          { key: 'X-Tenant', value: 'acme' },
+          { key: 'X-Api-Key', valueFromEnv: 'TEST_CUSTOM_API_KEY' },
+        ],
+        script: 'true;',
+        smoke: true,
+        monitor: false,
+      });
+      const keys = c.request.headers.map((h) => h.key);
+      assert.deepEqual(keys, ['X-Tenant', 'X-Api-Key']);
+      assert.equal(c.request.headers.find((h) => h.key === 'X-Api-Key').value, '{{TEST_CUSTOM_API_KEY}}');
+      const env = c.environmentVariables.find((v) => v.key === 'TEST_CUSTOM_API_KEY');
+      assert.equal(env.value, 'sekret');
+    } finally {
+      delete process.env.TEST_CUSTOM_API_KEY;
+    }
+  });
+
+  it('emits no environmentVariables when no header uses valueFromEnv', () => {
+    const c = tryFactory('custom-api', {
+      kind: 'custom-api',
+      logicalId: 'ca5',
+      env: 'PROD',
+      url: 'https://api.example.com/status',
+      script: 'true;',
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal((c.environmentVariables ?? []).length, 0);
+  });
+});
+
+describe('restricted-admin factory', () => {
+  function params(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+  }
+
+  it('reuses the launch-readiness spec verbatim (CHECK_KIND stays "launch-readiness")', () => {
+    const c = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra1',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'gated',
+      smoke: true,
+      monitor: false,
+    });
+    const env = Object.fromEntries(c.environmentVariables.map((v) => [v.key, v.value]));
+    assert.equal(env.CHECK_KIND, 'launch-readiness');
+    assert.equal(env.CHECK_TARGET_URL, 'https://example.com/admin');
+  });
+
+  it('maps expectedAccess: "gated" to expectPubliclyAccessible: false', () => {
+    const c = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra2',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'gated',
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(params(c).expectPubliclyAccessible, false);
+  });
+
+  it('maps expectedAccess: "either" to expectPubliclyAccessible: "either"', () => {
+    const c = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra3',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'either',
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(params(c).expectPubliclyAccessible, 'either');
+  });
+
+  it('passes securityHeaders through to checks.securityHeaders, defaulting to []', () => {
+    const withHeaders = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra4',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'either',
+      securityHeaders: ['Strict-Transport-Security', 'X-Frame-Options'],
+      smoke: true,
+      monitor: false,
+    });
+    assert.deepEqual(params(withHeaders).checks.securityHeaders, ['Strict-Transport-Security', 'X-Frame-Options']);
+
+    const withoutHeaders = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra5',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'gated',
+      smoke: true,
+      monitor: false,
+    });
+    assert.deepEqual(params(withoutHeaders).checks.securityHeaders, []);
+  });
+
+  it('honours waitUntil and followJsRedirect overrides', () => {
+    const c = tryFactory('restricted-admin', {
+      kind: 'restricted-admin',
+      logicalId: 'ra6',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'gated',
+      waitUntil: 'networkidle',
+      followJsRedirect: true,
+      smoke: true,
+      monitor: false,
+    });
+    const p = params(c);
+    assert.equal(p.waitUntil, 'networkidle');
+    assert.equal(p.followJsRedirect, true);
+  });
+});
+
 describe('common factory behavior', () => {
   const everyKind = [
     { kind: 'uptime-ssl', extra: {} },
@@ -443,6 +704,8 @@ describe('common factory behavior', () => {
     { kind: 'xpath', extra: { expect: { contains: ['x'] } } },
     { kind: 'xpath-spa', extra: { expect: [{ selector: 'h1', contains: 'x' }] } },
     { kind: 'gdpr', extra: { complianceMode: 'targeted' } },
+    { kind: 'custom-api', extra: { script: 'if (response.statusCode >= 500) throw new Error("down");' } },
+    { kind: 'restricted-admin', extra: { expectedAccess: 'gated' } },
   ];
 
   for (const { kind, extra } of everyKind) {

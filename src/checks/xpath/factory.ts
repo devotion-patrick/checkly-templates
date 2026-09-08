@@ -5,7 +5,7 @@ import { parseFrequency } from '@checkly-templates/shared/frequency';
 import { resolveLocations } from '@checkly-templates/shared/locations';
 import type { ProjectContext } from '@checkly-templates/shared/types';
 import type { KindDefaults } from '../../deploy/types.ts';
-import { type XpathEntry } from './schema.ts';
+import { KIND_VERSION, type XpathEntry } from './schema.ts';
 
 export const defaults: KindDefaults = {
   frequency: 'EVERY_30M',
@@ -16,7 +16,7 @@ export function factory(entry: XpathEntry, ctx: ProjectContext): ApiCheck {
   const locations = resolveLocations(entry, ctx);
 
   const tags = mergeTags(
-    buildAutoTags({ project: ctx.project, entry }),
+    buildAutoTags({ project: ctx.project, entry, templateVersion: KIND_VERSION }),
     ctx.project.tags,
     entry.tags,
   );

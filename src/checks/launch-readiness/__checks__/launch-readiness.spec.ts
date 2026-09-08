@@ -18,7 +18,7 @@
 //     Error at the end. No first-fail short-circuit — multi-issue
 //     audits should report the whole punch list.
 
-import { expect, test, type APIRequestContext, type Request, type Response } from '@playwright/test';
+import { test, type APIRequestContext, type Request, type Response } from '@playwright/test';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -40,6 +40,8 @@ function requireEnv(name: string): string {
 
 interface CheckParams {
   waitUntil: 'load' | 'domcontentloaded' | 'networkidle';
+  followJsRedirect?: boolean;
+  expectPubliclyAccessible?: boolean | 'either';
   checks: LaunchReadinessChecks;
 }
 
@@ -61,6 +63,7 @@ interface LaunchReadinessChecks {
   recaptchaOnForms?: boolean;
   lowercaseUrls?: boolean;
   trailingSlashRedirect?: 'drop' | 'add';
+  httpsRedirect?: boolean;
 }
 
 interface DomSnapshot {
@@ -88,6 +91,30 @@ const CHECK_PARAMS = isOurKind ? (JSON.parse(requireEnv('CHECK_PARAMS')) as Chec
 
 function originOf(url: string): string {
   return new URL(url).origin;
+}
+
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  '#39': "'",
+};
+
+// Raw HTML <title> text (from a fetched-not-rendered response) needs
+// entity-decoding before it's comparable to the DOM's already-decoded
+// document.title; both also get whitespace-collapsed since templates
+// commonly leave stray double spaces around interpolated values.
+function normalizeTitle(raw: string): string {
+  return raw
+    .replace(/&(#\d+|[a-z]+);/gi, (m, code: string) => {
+      if (code.startsWith('#')) return String.fromCharCode(Number(code.slice(1)));
+      return HTML_ENTITIES[code.toLowerCase()] ?? m;
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function isEnabled(opt: unknown): boolean {
@@ -121,9 +148,38 @@ test('launch readiness', async ({ page, request }) => {
   test.setTimeout(240_000);
   if (!isOurKind || !CHECK_PARAMS) return;
 
-  const { waitUntil, checks } = CHECK_PARAMS;
+  const { waitUntil, followJsRedirect, checks } = CHECK_PARAMS;
+  const expectPubliclyAccessible = CHECK_PARAMS.expectPubliclyAccessible ?? true;
   const findings: string[] = [];
+  const warnings: string[] = [];
   const note = (msg: string) => findings.push(msg);
+  const warn = (msg: string) => warnings.push(msg);
+
+  // Single reporting exit point: logs the human-readable findings/warnings
+  // list plus one machine-readable LAUNCH_READINESS_RESULT line (consumed
+  // by tooling that aggregates results across many sites, e.g. a report
+  // generator), then throws iff there's at least one finding. Every exit
+  // path below funnels through this instead of repeating the same
+  // console.log + throw shape.
+  const reportAndMaybeThrow = (httpStatus: number | null): void => {
+    console.log(`Launch readiness for ${TARGET_URL}:`);
+    console.log(`  findings: ${findings.length}`);
+    for (const f of findings) console.log(`    - ${f}`);
+    console.log(`  warnings: ${warnings.length}`);
+    for (const w of warnings) console.log(`    - ${w}`);
+    console.log('LAUNCH_READINESS_RESULT ' + JSON.stringify({ url: TARGET_URL, httpStatus, findings, warnings }));
+
+    if (findings.length > 0) {
+      const warningsBlock = warnings.length
+        ? `\n\nWarnings (non-blocking, ${warnings.length}):\n` + warnings.map((w) => `  - ${w}`).join('\n')
+        : '';
+      throw new Error(
+        `Launch readiness failed for ${TARGET_URL} (${findings.length} finding${findings.length === 1 ? '' : 's'}):\n\n` +
+          findings.map((f) => `  - ${f}`).join('\n') +
+          warningsBlock,
+      );
+    }
+  };
 
   // Capture request URLs for the `expectedScripts` assertion.
   const requestUrls: string[] = [];
@@ -133,8 +189,89 @@ test('launch readiness', async ({ page, request }) => {
   if (!mainResponse) {
     throw new Error(`Could not load ${TARGET_URL} (no response).`);
   }
+
+  const mainStatus = mainResponse.status();
+  const isAccessible = mainStatus >= 200 && mainStatus < 300;
   const mainHeaders = mainResponse.headers();
-  const origin = originOf(TARGET_URL);
+
+  // expectPubliclyAccessible: false marks a URL that should require auth
+  // (e.g. a CMS admin login). Its pass/fail sense is the opposite of a
+  // normal page: reachable-without-auth IS the failure, and correctly
+  // being gated means there's no real page to run the rest of the checks
+  // against.
+  if (expectPubliclyAccessible === false) {
+    if (isAccessible) {
+      const { hasPasswordField, title } = await page.evaluate(() => ({
+        hasPasswordField: document.querySelector('input[type="password"]') !== null,
+        title: document.title || '',
+      }));
+
+      // Checked before the password-field signal: "is this route actually
+      // just falling back to the homepage" (broken/misconfigured routing)
+      // is the more specific, more informative diagnosis when it applies —
+      // and a much lower-severity problem (duplicate-content SEO risk)
+      // than a genuinely exposed CMS, so it's a warning rather than a
+      // finding. Raw HTML <title> needs entity-decoding + whitespace
+      // normalization before comparing against the DOM's decoded title.
+      const homepageRes = await probe(request, originOf(TARGET_URL));
+      const homepageTitleRaw = homepageRes ? (await homepageRes.text()).match(/<title>([^<]*)<\/title>/i)?.[1] : null;
+      const homepageTitle = homepageTitleRaw ? normalizeTitle(homepageTitleRaw) : null;
+
+      if (homepageTitle && homepageTitle === normalizeTitle(title)) {
+        warn(
+          `Returned HTTP ${mainStatus} but the content is identical to the homepage, not a CMS login — likely a broken/misconfigured route rather than an exposed admin panel (still a duplicate-content SEO risk).`,
+        );
+      } else if (hasPasswordField) {
+        // A real login form is reachable without any network-level gate —
+        // the CMS itself is exposed. Full-severity finding.
+        note(`Expected this endpoint to require authentication, but a login form is publicly reachable (HTTP ${mainStatus}).`);
+      } else {
+        note(
+          `Expected this endpoint to require authentication, but it returned HTTP ${mainStatus} with content that doesn't look like a login page (investigate manually).`,
+        );
+      }
+    }
+    reportAndMaybeThrow(mainStatus);
+    return;
+  }
+
+  // expectPubliclyAccessible: 'either' marks a CMS/admin endpoint where
+  // public-vs-gated is a legitimate per-client choice (e.g. editors need
+  // to log in from arbitrary locations), not a defect either way. Content
+  // and SEO checks don't apply to a login page, so only securityHeaders
+  // runs — that's meaningful regardless of whether the endpoint is meant
+  // to be public. A 5xx is still a real failure.
+  if (expectPubliclyAccessible === 'either') {
+    if (mainStatus >= 500) {
+      note(`Returned HTTP ${mainStatus} — server error.`);
+    } else if (isAccessible && checks.securityHeaders && checks.securityHeaders.length > 0) {
+      const lowerKeys = Object.keys(mainHeaders).map((k) => k.toLowerCase());
+      for (const want of checks.securityHeaders) {
+        if (!lowerKeys.includes(want.toLowerCase())) {
+          note(`Response header "${want}" is missing.`);
+        }
+      }
+    }
+    reportAndMaybeThrow(mainStatus);
+    return;
+  }
+
+  // Only audit pages that actually serve a 2xx. Non-200 endpoints (e.g. an
+  // unexpectedly auth-gated page) lack security headers and real content
+  // by design, so running the header/content checks against them produces
+  // misleading failures. Report the status and skip the rest.
+  if (!isAccessible) {
+    note(`Returned HTTP ${mainStatus} (expected 200) — header & content checks skipped.`);
+    reportAndMaybeThrow(mainStatus);
+    return;
+  }
+
+  // Resolved (post-redirect) origin, not TARGET_URL's own scheme/host —
+  // e.g. a configured http:// URL that immediately 301s to https would
+  // otherwise make every path-based probe below (404, robots.txt, sitemap,
+  // lowercase/trailing-slash redirects) hit that same http->https hop
+  // instead of the actual page it's meant to test.
+  const origin = originOf(mainResponse.url());
 
   // ---------- DOM snapshot (single browser-side pass) ----------
   // Pre-compute every DOM-side fact we need so each assertion below is
@@ -146,7 +283,7 @@ test('launch readiness', async ({ page, request }) => {
     isEnabled(checks.imgAlt) ? checks.imgAlt : false,
     { allowEmptyForDecorative: true },
   );
-  const dom: DomSnapshot = await page.evaluate(
+  const captureDom = (): Promise<DomSnapshot> => page.evaluate(
     ({ ogTagsRequested, allowEmptyForDecorative }) => {
       const $ = (sel: string) => document.querySelector(sel);
       const $$ = (sel: string) => Array.from(document.querySelectorAll(sel));
@@ -202,6 +339,27 @@ test('launch readiness', async ({ page, request }) => {
     },
     { ogTagsRequested, allowEmptyForDecorative: imgAltOpts.allowEmptyForDecorative },
   );
+
+  // Some pages fire a client-side (JS) redirect *after* the load event
+  // (e.g. abergeldie.com/admin returns 200, then JS-redirects to a login).
+  // That navigation destroys the execution context mid-evaluate. Behaviour
+  // is controlled by `followJsRedirect`:
+  //   - false (default): report the redirect as a finding and skip DOM checks.
+  //   - true: follow it — let the destination settle and snapshot that instead.
+  let dom: DomSnapshot;
+  try {
+    dom = await captureDom();
+  } catch (err) {
+    if (!/execution context was destroyed|because of a navigation/i.test((err as Error).message)) throw err;
+    if (!followJsRedirect) {
+      note('Performed a client-side redirect after load — DOM checks skipped (set followJsRedirect: true to audit the destination).');
+      reportAndMaybeThrow(mainStatus);
+      return;
+    }
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.waitForTimeout(1500);
+    dom = await captureDom();
+  }
 
   // ---------- 1. placeholderText (DOM-only) ----------
   if (isEnabled(checks.placeholderText)) {
@@ -259,10 +417,10 @@ test('launch readiness', async ({ page, request }) => {
       note('Meta <title> is empty.');
     } else {
       if (opts.minLength !== undefined && dom.title.length < opts.minLength) {
-        note(`Meta <title> too short (${dom.title.length} < ${opts.minLength}).`);
+        warn(`Meta <title> too short (${dom.title.length} < ${opts.minLength}).`);
       }
       if (opts.maxLength !== undefined && dom.title.length > opts.maxLength) {
-        note(`Meta <title> too long (${dom.title.length} > ${opts.maxLength}).`);
+        warn(`Meta <title> too long (${dom.title.length} > ${opts.maxLength}).`);
       }
     }
   }
@@ -275,10 +433,10 @@ test('launch readiness', async ({ page, request }) => {
       note('Meta description is missing or empty.');
     } else {
       if (opts.minLength !== undefined && desc.length < opts.minLength) {
-        note(`Meta description too short (${desc.length} < ${opts.minLength}).`);
+        warn(`Meta description too short (${desc.length} < ${opts.minLength}).`);
       }
       if (opts.maxLength !== undefined && desc.length > opts.maxLength) {
-        note(`Meta description too long (${desc.length} > ${opts.maxLength}).`);
+        warn(`Meta description too long (${desc.length} > ${opts.maxLength}).`);
       }
     }
   }
@@ -334,7 +492,8 @@ test('launch readiness', async ({ page, request }) => {
     | { kind: 'sitemap'; res: Awaited<ReturnType<typeof probe>>; url: string; opts: { path?: string; spotCheckUrls?: number } }
     | { kind: 'notFoundPage'; res: Awaited<ReturnType<typeof probe>>; url: string }
     | { kind: 'lowercaseUrls'; res: Awaited<ReturnType<typeof probe>>; url: string }
-    | { kind: 'trailingSlashRedirect'; res: Awaited<ReturnType<typeof probe>>; probeUrl: string; expectedTarget: string };
+    | { kind: 'trailingSlashRedirect'; res: Awaited<ReturnType<typeof probe>>; probeUrl: string; expectedTarget: string }
+    | { kind: 'httpsRedirect'; res: Awaited<ReturnType<typeof probe>>; httpUrl: string };
 
   const probes: Promise<ProbeResult | null>[] = [];
 
@@ -381,7 +540,8 @@ test('launch readiness', async ({ page, request }) => {
     if (m && m.index !== undefined) {
       const i = m.index;
       const upperPath = u.pathname.substring(0, i) + u.pathname[i].toUpperCase() + u.pathname.substring(i + 1);
-      const upperUrl = `${u.origin}${upperPath}${u.search}`;
+      // Resolved origin (not u.origin) — see the `origin` declaration above.
+      const upperUrl = `${origin}${upperPath}${u.search}`;
       probes.push(
         probe(request, upperUrl, { maxRedirects: 0 }).then((res) => ({ kind: 'lowercaseUrls', res, url: upperUrl })),
       );
@@ -396,10 +556,11 @@ test('launch readiness', async ({ page, request }) => {
     if (path !== '/' && path.length > 0) {
       const withSlash = path.endsWith('/') ? path : path + '/';
       const withoutSlash = path.endsWith('/') ? path.slice(0, -1) : path;
+      // Resolved origin (not u.origin) — see the `origin` declaration above.
       const probeUrl =
-        mode === 'drop' ? `${u.origin}${withSlash}${u.search}` : `${u.origin}${withoutSlash}${u.search}`;
+        mode === 'drop' ? `${origin}${withSlash}${u.search}` : `${origin}${withoutSlash}${u.search}`;
       const expectedTarget =
-        mode === 'drop' ? `${u.origin}${withoutSlash}${u.search}` : `${u.origin}${withSlash}${u.search}`;
+        mode === 'drop' ? `${origin}${withoutSlash}${u.search}` : `${origin}${withSlash}${u.search}`;
       probes.push(
         probe(request, probeUrl, { maxRedirects: 0 }).then((res) => ({
           kind: 'trailingSlashRedirect',
@@ -409,6 +570,18 @@ test('launch readiness', async ({ page, request }) => {
         })),
       );
     }
+  }
+
+  // https-redirect probe — always builds the plain-http variant of the
+  // resolved host, regardless of which scheme the configured `url` uses,
+  // so it validates the origin's actual HTTPS-enforcement policy rather
+  // than just "did the page we already loaded happen to end up on https".
+  if (isEnabled(checks.httpsRedirect)) {
+    const targetPath = new URL(TARGET_URL);
+    const httpUrl = `http://${new URL(origin).host}${targetPath.pathname}${targetPath.search}`;
+    probes.push(
+      probe(request, httpUrl, { maxRedirects: 0 }).then((res) => ({ kind: 'httpsRedirect', res, httpUrl })),
+    );
   }
 
   const probeResults = await Promise.all(probes);
@@ -495,22 +668,26 @@ test('launch readiness', async ({ page, request }) => {
         }
         break;
       }
+      case 'httpsRedirect': {
+        const { res, httpUrl } = result;
+        if (!res) {
+          note(`HTTP→HTTPS probe to "${httpUrl}" returned no response.`);
+        } else if (res.status === null || res.status < 300 || res.status >= 400) {
+          note(`"${httpUrl}" returned status ${res.status} (expected a 301/302 redirect to HTTPS).`);
+        } else {
+          const location = res.headers['location'];
+          const resolved = location ? new URL(location, httpUrl) : null;
+          if (!resolved || resolved.protocol !== 'https:') {
+            note(`"${httpUrl}" redirected to "${location ?? '<no Location header>'}" instead of an HTTPS URL.`);
+          }
+        }
+        break;
+      }
     }
   }
 
   // ---------- Report ----------
-  console.log(`Launch readiness for ${TARGET_URL}:`);
-  console.log(`  findings: ${findings.length}`);
-  for (const f of findings) {
-    console.log(`    - ${f}`);
-  }
-
-  if (findings.length > 0) {
-    throw new Error(
-      `Launch readiness failed for ${TARGET_URL} (${findings.length} finding${findings.length === 1 ? '' : 's'}):\n\n` +
-        findings.map((f) => `  - ${f}`).join('\n'),
-    );
-  }
-
-  expect(findings.length).toBe(0);
+  // Findings fail the check; warnings (e.g. SEO length guidance) are
+  // reported for visibility but don't block launch on their own.
+  reportAndMaybeThrow(mainStatus);
 });

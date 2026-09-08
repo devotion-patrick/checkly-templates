@@ -1,0 +1,5244 @@
+{
+  "$schema": "../../../src/deploy/schema.json",
+  "project": {
+    "logicalId": "devotion-sites-launch-readiness",
+    "name": "Devotion Sites - Launch Readiness",
+    "defaults": {
+      "env": "PROD",
+      "frequency": "EVERY_24H",
+      "locations": [
+        "ap-southeast-2"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "kind": "launch-readiness",
+      "logicalId": "abergeldie-com",
+      "url": "https://abergeldie.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "abergeldie-com-admin",
+      "url": "https://abergeldie.com/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "ampc-com-au",
+      "url": "https://ampc.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "ampc-com-au-umbraco",
+      "url": "https://ampc.com.au/umbraco",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-bullivants-com",
+      "url": "https://www.bullivants.com/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-bullivants-com-admin",
+      "url": "https://www.bullivants.com/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-crownsydney-com-au",
+      "url": "https://www.crownsydney.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-crownmelbourne-com-au",
+      "url": "https://www.crownmelbourne.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-crownperth-com-au",
+      "url": "https://www.crownperth.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-crowngifts-com-au",
+      "url": "https://www.crowngifts.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-crownresorts-com-au",
+      "url": "https://www.crownresorts.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "shop-csu-edu-au",
+      "url": "https://shop.csu.edu.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "shopadmin-csu-edu-au",
+      "url": "https://shopadmin.csu.edu.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-devotion-com-au",
+      "url": "https://www.devotion.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "connectedspacesjoinery-com-au",
+      "url": "https://connectedspacesjoinery.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "connectedspacesjoinery-co-nz",
+      "url": "https://connectedspacesjoinery.co.nz",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "inaboxsolutions-com-au",
+      "url": "https://inaboxsolutions.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "inaboxsolutions-com",
+      "url": "https://inaboxsolutions.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "b2b-inaboxsolutions-com",
+      "url": "https://b2b.inaboxsolutions.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-gptconnect-com-au",
+      "url": "https://www.gptconnect.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-gptconnect-com-au-admin",
+      "url": "https://www.gptconnect.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-macquariecentre-com-au",
+      "url": "https://www.macquariecentre.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-macquariecentre-com-au-admin",
+      "url": "https://www.macquariecentre.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-pacificfair-com-au",
+      "url": "https://www.pacificfair.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-pacificfair-com-au-admin",
+      "url": "https://www.pacificfair.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-melbournecentral-com-au",
+      "url": "https://www.melbournecentral.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-melbournecentral-com-au-admin",
+      "url": "https://www.melbournecentral.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-highpoint-com-au",
+      "url": "https://www.highpoint.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-highpoint-com-au-admin",
+      "url": "https://www.highpoint.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-charlestownsquare-com-au",
+      "url": "https://www.charlestownsquare.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-charlestownsquare-com-au-admin",
+      "url": "https://www.charlestownsquare.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-chirnsidepark-com-au",
+      "url": "https://www.chirnsidepark.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-chirnsidepark-com-au-admin",
+      "url": "https://www.chirnsidepark.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-daptomall-com-au",
+      "url": "https://www.daptomall.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-daptomall-com-au-admin",
+      "url": "https://www.daptomall.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-malverncentralshopping-com-au",
+      "url": "https://www.malverncentralshopping.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-malverncentralshopping-com-au-admin",
+      "url": "https://www.malverncentralshopping.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-marrickvillemetro-com-au",
+      "url": "https://www.marrickvillemetro.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-marrickvillemetro-com-au-admin",
+      "url": "https://www.marrickvillemetro.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-parkmoreshopping-com-au",
+      "url": "https://www.parkmoreshopping.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-parkmoreshopping-com-au-admin",
+      "url": "https://www.parkmoreshopping.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-karrinyupcentre-com-au",
+      "url": "https://www.karrinyupcentre.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-karrinyupcentre-com-au-admin",
+      "url": "https://www.karrinyupcentre.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-goldsbroughvillage-com-au",
+      "url": "https://www.goldsbroughvillage.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-goldsbroughvillage-com-au-admin",
+      "url": "https://www.goldsbroughvillage.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-rhtc-com-au",
+      "url": "https://www.rhtc.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-rhtc-com-au-admin",
+      "url": "https://www.rhtc.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-gpt-com-au-logisticsleasing",
+      "url": "https://www.gpt.com.au/logisticsleasing",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "logistics-cms-gpt-com-au",
+      "url": "https://logistics-cms.gpt.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "office-cms-gpt-com-au",
+      "url": "https://office-cms.gpt.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-150collins-com",
+      "url": "https://www.150collins.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-181williamstreet-com-au",
+      "url": "https://www.181williamstreet.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-300lonsdale-com-au",
+      "url": "https://www.300lonsdale.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-32smith-com-au",
+      "url": "https://www.32smith.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-51flindersln-com-au",
+      "url": "https://www.51flindersln.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-530collins-com-au",
+      "url": "https://www.530collins.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-550bourkestreet-com-au",
+      "url": "https://www.550bourkestreet.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-580george-com-au",
+      "url": "https://www.580george.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-60stationstreet-com-au",
+      "url": "https://www.60stationstreet.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-750collinsstreet-com-au",
+      "url": "https://www.750collinsstreet.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-800bourkestreet-com-au",
+      "url": "https://www.800bourkestreet.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-darlingpark-com-au",
+      "url": "https://www.darlingpark.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-libertyplace-com-au",
+      "url": "https://www.libertyplace.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-melbournecentraltower-com-au",
+      "url": "https://www.melbournecentraltower.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-oneoneonebrisbane-com-au",
+      "url": "https://www.oneoneonebrisbane.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-queenandcollins-com-au",
+      "url": "https://www.queenandcollins.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-riversidecentre-com-au",
+      "url": "https://www.riversidecentre.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-twopark-com-au",
+      "url": "https://www.twopark.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-workplace6-com-au",
+      "url": "https://www.workplace6.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-experiencethefuture-com-au",
+      "url": "https://www.experiencethefuture.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "wholesalefunds-gpt-com-au",
+      "url": "https://wholesalefunds.gpt.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "wholesalefunds-gpt-com-au-admin",
+      "url": "https://wholesalefunds.gpt.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-gpt-com-au-office",
+      "url": "https://www.gpt.com.au/office",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "office-cms-gpt-com-au-x",
+      "url": "https://office-cms.gpt.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-hunterdouglas-com",
+      "url": "https://www.hunterdouglas.com/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "cms-hunterdouglas-com-au",
+      "url": "https://cms.hunterdouglas.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "hunterdouglascomponents-com-au",
+      "url": "https://hunterdouglascomponents.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "cms-hunterdouglascomponents-com-au",
+      "url": "https://cms.hunterdouglascomponents.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "alfi-hunterdouglas-com-au",
+      "url": "https://alfi.hunterdouglas.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-luxaflex-com-au",
+      "url": "https://www.luxaflex.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "cms-luxaflex-com-au",
+      "url": "https://cms.luxaflex.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "portal-luxaflex-com-au",
+      "url": "https://portal.luxaflex.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "cms-portal-luxaflex-com-au",
+      "url": "https://cms.portal.luxaflex.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "abinteriors-luxaflex-com-au",
+      "url": "https://abinteriors.luxaflex.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "cms-dealer-sites-luxaflex-com-au",
+      "url": "https://cms.dealer-sites.luxaflex.com.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-integro-com-au",
+      "url": "https://www.integro.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-integro-com-au-admin",
+      "url": "https://www.integro.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-justbettercare-com",
+      "url": "https://www.justbettercare.com/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "admin-justbettercare-com",
+      "url": "https://admin.justbettercare.com",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-jingle-com-au",
+      "url": "https://www.jingle.com.au/",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-neca-asn-au",
+      "url": "https://www.neca.asn.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "national-cms-neca-asn-au",
+      "url": "https://national-cms.neca.asn.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-neca-asn-au-branch",
+      "url": "https://www.neca.asn.au/branch",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "group-cms-neca-asn-au",
+      "url": "https://group-cms.neca.asn.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "marketing-neca-asn-au",
+      "url": "https://marketing.neca.asn.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "portal-neca-asn-au",
+      "url": "https://portal.neca.asn.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "portal-cms-neca-asn-au",
+      "url": "https://portal-cms.neca.asn.au",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-regionalaustraliabank-com-au",
+      "url": "https://www.regionalaustraliabank.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-regionalaustraliabank-com-au-admin",
+      "url": "https://www.regionalaustraliabank.com.au/admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": false,
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "rmbl-com-au",
+      "url": "https://rmbl.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "spiritsplatform-com-au",
+      "url": "https://spiritsplatform.com.au",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "spiritsplatform-com-au-wp-admin",
+      "url": "https://spiritsplatform.com.au/wp-admin",
+      "waitUntil": "load",
+      "expectPubliclyAccessible": "either",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-stengg-com",
+      "url": "https://www.stengg.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-airplus-family-com",
+      "url": "http://www.airplus-family.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-arcooler-com",
+      "url": "http://www.arcooler.com",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    },
+    {
+      "kind": "launch-readiness",
+      "logicalId": "www-stai-com-sg",
+      "url": "http://www.stai.com.sg",
+      "waitUntil": "load",
+      "checks": {
+        "placeholderText": true,
+        "favicon": true,
+        "canonical": true,
+        "h1": {
+          "count": 1
+        },
+        "headingOrder": true,
+        "imgAlt": {
+          "allowEmptyForDecorative": true
+        },
+        "metaTitle": {
+          "minLength": 10,
+          "maxLength": 70
+        },
+        "metaDescription": {
+          "minLength": 50,
+          "maxLength": 160
+        },
+        "ogTags": [
+          "og:title",
+          "og:image",
+          "og:description"
+        ],
+        "robotsTxt": true,
+        "sitemap": {
+          "path": "/sitemap.xml",
+          "spotCheckUrls": 3
+        },
+        "securityHeaders": [
+          "X-Content-Type-Options",
+          "X-Frame-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy",
+          "Content-Security-Policy",
+          "Permissions-Policy"
+        ],
+        "notFoundPage": true,
+        "lowercaseUrls": true,
+        "trailingSlashRedirect": "drop",
+        "httpsRedirect": true
+      },
+      "smoke": true
+    }
+  ]
+}

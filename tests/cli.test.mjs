@@ -52,7 +52,7 @@ before(() => {
     }),
   );
 
-  const PLAYWRIGHT_KINDS = new Set(['gdpr', 'xpath-spa', 'launch-readiness']);
+  const PLAYWRIGHT_KINDS = new Set(['gdpr', 'xpath-spa', 'launch-readiness', 'restricted-admin']);
 
   fixtureApiOnly = path.join(tmp, 'fixture-api-only-' + Date.now() + '.json');
   fs.writeFileSync(
@@ -179,15 +179,15 @@ describe('try-config.mjs (subprocess)', () => {
   it('--mode validate honours CHECKLY_PURPOSE=test (filters down to smoke entries)', () => {
     const r = run([tryConfig, '--mode', 'validate', '--config', example], { ...exampleEnv, CHECKLY_PURPOSE: 'test' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
-    // Example has 7 entries; 6 with smoke=true (uptime-ssl is monitor-only).
-    assert.match(r.stdout, /6\/7 entries for CHECKLY_PURPOSE=test/);
+    // Example has 9 entries; 8 with smoke=true (uptime-ssl is monitor-only).
+    assert.match(r.stdout, /8\/9 entries for CHECKLY_PURPOSE=test/);
   });
 
   it('--mode validate honours CHECKLY_PURPOSE=monitor', () => {
     const r = run([tryConfig, '--mode', 'validate', '--config', example], { ...exampleEnv, CHECKLY_PURPOSE: 'monitor' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
     // Example has 3 monitor=true entries.
-    assert.match(r.stdout, /3\/7 entries for CHECKLY_PURPOSE=monitor/);
+    assert.match(r.stdout, /3\/9 entries for CHECKLY_PURPOSE=monitor/);
   });
 
   it('--mode validate fails clearly when a header valueFromEnv var is missing', () => {

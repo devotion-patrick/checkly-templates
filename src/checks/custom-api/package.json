@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/custom-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly ApiCheck with a fully user-authored teardown script for validation — for a check whose logic doesn't fit any other kind (e.g. a script authored in an external UI before publishing).",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

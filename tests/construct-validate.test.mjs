@@ -103,6 +103,30 @@ const KINDS = [
       monitor: false,
     },
   },
+  {
+    kind: 'custom-api',
+    entry: {
+      kind: 'custom-api',
+      logicalId: 'cv-custom-api',
+      env: 'PROD',
+      url: 'https://example.com/api/status',
+      script: "if (response.statusCode !== 200) throw new Error('unexpected status ' + response.statusCode);",
+      smoke: true,
+      monitor: false,
+    },
+  },
+  {
+    kind: 'restricted-admin',
+    entry: {
+      kind: 'restricted-admin',
+      logicalId: 'cv-restricted-admin',
+      env: 'PROD',
+      url: 'https://example.com/admin',
+      expectedAccess: 'gated',
+      smoke: true,
+      monitor: false,
+    },
+  },
 ];
 
 describe('Construct.validate(): every kind\'s factory output passes Checkly\'s own validators', () => {
