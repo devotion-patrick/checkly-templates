@@ -24,7 +24,7 @@ describe('uptime-ssl factory', () => {
     assert.equal(c.request.url, 'https://example.com');
   });
 
-  it('emits a status-range assertion (default 200-299 inclusive)', () => {
+  it('forces followRedirects=false so a redirect is visible to the teardown script', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'u2',
@@ -33,7 +33,19 @@ describe('uptime-ssl factory', () => {
       smoke: false,
       monitor: true,
     });
-    assert.equal(c.request.assertions.length, 2);
+    assert.equal(c.request.followRedirects, false);
+  });
+
+  it('always attaches a tearDownScript with inline content', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'u2b',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+    });
+    assert.ok(c.tearDownScript?.content?.includes('UPTIME_SSL_PARAMS'));
   });
 
   it('emits source tag and prefix triple when project has prefix+codename', () => {
@@ -78,6 +90,91 @@ describe('uptime-ssl factory', () => {
     });
     const expected = `tmpl-version:uptime-ssl@${REGISTRY['uptime-ssl'].version}`;
     assert.ok(c.tags.includes(expected), `tags: ${c.tags.join(', ')}, expected: ${expected}`);
+  });
+});
+
+describe('uptime-ssl factory: severity params (via UPTIME_SSL_PARAMS + tearDownScript)', () => {
+  // A redirect and a missing security header are both findings, but a
+  // declarative assertions array can't tell Checkly "the first is Down,
+  // the second is Degraded" — Checkly has no such distinction. All of
+  // that logic lives in a teardown script instead; see factory.ts's
+  // TEARDOWN_SCRIPT comment. These tests assert on the params travelling
+  // to it rather than a request.assertions array that no longer exists.
+  function params(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'UPTIME_SSL_PARAMS').value);
+  }
+
+  it('defaults successMin/successMax to 200/299', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'ua1',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+    });
+    const p = params(c);
+    assert.equal(p.successMin, 200);
+    assert.equal(p.successMax, 299);
+  });
+
+  it('honours a custom successStatusRange', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'ua2',
+      env: 'PROD',
+      url: 'https://example.com',
+      successStatusRange: { min: 200, max: 399 },
+      smoke: false,
+      monitor: true,
+    });
+    const p = params(c);
+    assert.equal(p.successMin, 200);
+    assert.equal(p.successMax, 399);
+  });
+
+  it('defaults securityHeaders to the baseline set', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'ua3',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).securityHeaders, [
+      'X-Content-Type-Options',
+      'X-Frame-Options',
+      'Strict-Transport-Security',
+      'Referrer-Policy',
+      'Content-Security-Policy',
+    ]);
+  });
+
+  it('securityHeaders: false skips the header check entirely', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'ua4',
+      env: 'PROD',
+      url: 'https://example.com',
+      securityHeaders: false,
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).securityHeaders, []);
+  });
+
+  it('an explicit securityHeaders array overrides the baseline set', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'ua5',
+      env: 'PROD',
+      url: 'https://example.com',
+      securityHeaders: ['Content-Security-Policy'],
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).securityHeaders, ['Content-Security-Policy']);
   });
 });
 

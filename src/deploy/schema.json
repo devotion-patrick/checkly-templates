@@ -224,6 +224,23 @@
                   }
                 },
                 "description": "Inclusive status-code range counted as success. Defaults to 200-299."
+              },
+              "securityHeaders": {
+                "oneOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1
+                  }
+                ],
+                "default": true,
+                "description": "Response headers required to be present. true: a baseline set (X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, Referrer-Policy, Content-Security-Policy). false: skip. An array: check exactly these instead. A missing header degrades the check rather than marking it down."
               }
             },
             "allOf": [

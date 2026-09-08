@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { tryFactory } from './helpers.mjs';
 
 describe('synthesize: ApiCheck kinds', () => {
-  it('uptime-ssl synthesises with method=GET, the configured url, and at least two assertions', () => {
+  it('uptime-ssl synthesises with method=GET, the configured url, and followRedirects=false', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'syn-uptime',
@@ -22,7 +22,9 @@ describe('synthesize: ApiCheck kinds', () => {
     assert.equal(out.checkType, 'API');
     assert.equal(out.request.method, 'GET');
     assert.equal(out.request.url, 'https://example.com');
-    assert.ok(Array.isArray(out.request.assertions) && out.request.assertions.length >= 2);
+    assert.equal(out.request.followRedirects, false);
+    const params = out.environmentVariables.find((v) => v.key === 'UPTIME_SSL_PARAMS');
+    assert.ok(params, 'expected UPTIME_SSL_PARAMS env var');
   });
 
   it('redirect synthesises with followRedirects=false', () => {
