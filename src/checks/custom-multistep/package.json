@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/custom-multistep",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly MultiStepCheck with a fully user-authored, request-only script -- several sequential HTTP requests validated in one check, without a browser.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

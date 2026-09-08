@@ -727,6 +727,37 @@ describe('custom-playwright factory', () => {
   });
 });
 
+describe('custom-multistep factory', () => {
+  it('wires entry.script verbatim as code.content — no embedded spec', () => {
+    const script = "const { test } = require('@playwright/test'); test('x', async ({ request }) => {});";
+    const c = tryFactory('custom-multistep', {
+      kind: 'custom-multistep',
+      logicalId: 'cm1',
+      env: 'PROD',
+      url: 'https://cms.example.com',
+      script,
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(c.code.content, script);
+  });
+
+  it('sets CHECK_TARGET_URL from the entry\'s own url, and nothing else', () => {
+    const c = tryFactory('custom-multistep', {
+      kind: 'custom-multistep',
+      logicalId: 'cm2',
+      env: 'PROD',
+      url: 'https://cms.example.com/health',
+      script: 'true;',
+      smoke: true,
+      monitor: false,
+    });
+    assert.deepEqual(c.environmentVariables, [
+      { key: 'CHECK_TARGET_URL', value: 'https://cms.example.com/health' },
+    ]);
+  });
+});
+
 describe('common factory behavior', () => {
   const everyKind = [
     { kind: 'uptime-ssl', extra: {} },
@@ -738,6 +769,7 @@ describe('common factory behavior', () => {
     { kind: 'custom-api', extra: { script: 'if (response.statusCode >= 500) throw new Error("down");' } },
     { kind: 'restricted-admin', extra: { expectedAccess: 'gated' } },
     { kind: 'custom-playwright', extra: { script: 'true;' } },
+    { kind: 'custom-multistep', extra: { script: 'true;' } },
   ];
 
   for (const { kind, extra } of everyKind) {
