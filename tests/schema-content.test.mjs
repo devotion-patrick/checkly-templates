@@ -28,6 +28,7 @@ const EXPECTED_KINDS = [
   'launch-readiness',
   'custom-api',
   'restricted-admin',
+  'custom-playwright',
 ];
 
 describe('schema-content: top-level shape', () => {

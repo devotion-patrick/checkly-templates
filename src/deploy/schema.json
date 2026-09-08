@@ -1515,8 +1515,7 @@
             "required": [
               "kind",
               "logicalId",
-              "url",
-              "script"
+              "url"
             ],
             "properties": {
               "$comment": {
@@ -1592,6 +1591,10 @@
               "kind": {
                 "const": "custom-api"
               },
+              "path": {
+                "type": "string",
+                "description": "Appended to `url` before the request is built. Portal-only plumbing: a consumer that already sets `url` to the full address (this repo's own deploy pipeline included) has no use for this."
+              },
               "method": {
                 "enum": [
                   "GET",
@@ -1658,7 +1661,12 @@
               "script": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Full validation script, run as this check's tearDownScript: `response` (status/body/headers), `request`, and `process.env` are in scope; throw an Error to fail the check, console.log for non-blocking notes."
+                "description": "Full validation script, run as this check's tearDownScript: `response` (status/body/headers), `request`, and `process.env` are in scope; throw an Error to fail the check, console.log for non-blocking notes. Mutually exclusive with `snippetId`."
+              },
+              "snippetId": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "A Checkly account-level Snippet's id, run as this check's teardown validation instead of an inline script. Mutually exclusive with `script`. REST-API consumers only -- this repo's own CLI deploy refuses a config that sets it, since Checkly does not support account Snippets for a CLI/constructs-managed check."
               }
             },
             "allOf": [
@@ -1686,6 +1694,31 @@
                   }
                 ],
                 "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              },
+              {
+                "oneOf": [
+                  {
+                    "required": [
+                      "script"
+                    ],
+                    "not": {
+                      "required": [
+                        "snippetId"
+                      ]
+                    }
+                  },
+                  {
+                    "required": [
+                      "snippetId"
+                    ],
+                    "not": {
+                      "required": [
+                        "script"
+                      ]
+                    }
+                  }
+                ],
+                "errorMessage": "Set exactly one of `script` (inline) or `snippetId` (a Checkly Snippet), not both."
               }
             ]
           },
@@ -1800,6 +1833,127 @@
                 "type": "boolean",
                 "default": false,
                 "description": "Follow a client-side (JS) redirect that fires after load, instead of reporting it and stopping."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "url",
+              "script"
+            ],
+            "properties": {
+              "$comment": {
+                "type": "string",
+                "description": "Free-form annotation. Ignored at deploy time; useful for documenting why an entry exists."
+              },
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag. Required either here or on `project.defaults.env`; entry-level overrides project-level."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Override the auto-composed Checkly check name. When unset, the factory emits `{codename|project.name} - {env} - {kind} - {url}`."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "custom-playwright"
+              },
+              "path": {
+                "type": "string",
+                "description": "Appended to `url` before this check runs. Portal-only plumbing, same field and reasoning as custom-api's `path`: a consumer that already sets `url` to the full address (this repo's own deploy pipeline included) has no use for this."
+              },
+              "script": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Full Playwright test script, run as this check's entire body via Checkly's BrowserCheck `code.content`. `page`, `context`, `request` and `process.env` (including CHECK_TARGET_URL) are available; there is no separate assertions field, the script is the whole check."
               }
             },
             "allOf": [

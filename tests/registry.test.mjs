@@ -16,6 +16,7 @@ const EXPECTED_KINDS = [
   'launch-readiness',
   'custom-api',
   'restricted-admin',
+  'custom-playwright',
 ];
 
 describe('registry: shape', () => {
@@ -36,9 +37,12 @@ describe('registry: shape', () => {
     }
   });
 
-  it('isPlaywright is set on the four Playwright kinds and nothing else', () => {
+  it('isPlaywright is set on the five Playwright kinds and nothing else', () => {
     const pw = MODULES.filter((m) => m.isPlaywright === true).map((m) => m.kind).sort();
-    assert.deepEqual(pw, ['gdpr', 'launch-readiness', 'restricted-admin', 'xpath-spa']);
+    assert.deepEqual(
+      pw,
+      ['custom-playwright', 'gdpr', 'launch-readiness', 'restricted-admin', 'xpath-spa'],
+    );
   });
 
   it('REGISTRY is keyed by `kind`', () => {

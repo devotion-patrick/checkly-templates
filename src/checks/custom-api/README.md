@@ -22,12 +22,48 @@ is no separate `assertions` field.
 }
 ```
 
-| Field     | Required | Notes |
-| --------- | -------- | ----- |
-| `method`  | no       | Default `GET`. One of `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` |
-| `body`    | no       | Request body (e.g. a JSON string) |
-| `headers` | no       | Same shape as [dotnet-health](../dotnet-health/README.md#authenticating-to-the-health-endpoint)'s: each item sets exactly one of `value` (literal) or `valueFromEnv` (CI-sourced, per-check secret) |
-| `script`  | **yes**  | The full validation script — see below |
+| Field       | Required | Notes |
+| ----------- | -------- | ----- |
+| `path`      | no       | Appended to `url` before the request is built. Portal-only plumbing — see below |
+| `method`    | no       | Default `GET`. One of `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` |
+| `body`      | no       | Request body (e.g. a JSON string) |
+| `headers`   | no       | Same shape as [dotnet-health](../dotnet-health/README.md#authenticating-to-the-health-endpoint)'s: each item sets exactly one of `value` (literal) or `valueFromEnv` (CI-sourced, per-check secret) |
+| `script`    | one of   | The full validation script — see below. Exactly one of `script` / `snippetId` is required |
+| `snippetId` | one of   | A Checkly account-level Snippet's id, run in place of `script` — see below. Exactly one of `script` / `snippetId` is required |
+
+## `path` is portal-only plumbing
+
+`url` above is already the full absolute address — this schema does not
+distinguish "the host" from "the endpoint under it" the way a consumer
+built around hostnames might. A consumer of this schema that already
+sets `url` directly (this repo's own deploy pipeline included) has no
+use for `path` at all and can leave it unset.
+
+It exists because the Devotion portal's own configuration derives `url`
+from an application's hostname rather than letting an operator type one
+freely, and a hostname is a domain (`https://cms.example.com`), not a
+specific endpoint (`https://cms.example.com/CMSPages/Devotion/HealthCheck/DealerList.ashx`).
+The portal appends `path` to that hostname's address before validating,
+so the derived `url` is always what actually reaches the schema and
+`factory.ts` — this field is inert here, present only so a
+portal-authored configuration round-trips through validation unchanged.
+
+## `script` vs `snippetId`
+
+Exactly one of the two is required — this kind's entire validation has
+to come from somewhere, and from exactly one place.
+
+**`snippetId` is REST-API-only.** Checkly account-level Snippets
+(created and named in Checkly's UI, referenced elsewhere by
+`require('./snippets/name.js')`) can be attached to a check by id
+(`tearDownSnippetId` on the raw `POST /v1/checks` body) when a consumer
+creates checks by calling Checkly's REST API directly — e.g. the
+Devotion portal. Checkly's own docs are explicit that account Snippets
+are **not supported for a CLI/constructs-managed check**: `checkly
+deploy` bundles local files under `./snippets` at build time instead, so
+there is no equivalent for this repo's own pipeline. Set `snippetId` in
+a config validated by this repo's schema and `factory.ts` throws rather
+than silently ignoring it — use `script` here.
 
 ## The `script` contract
 

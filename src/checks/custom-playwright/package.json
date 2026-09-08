@@ -1,0 +1,16 @@
+{
+  "name": "@checkly-templates/custom-playwright",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly BrowserCheck with a fully user-authored Playwright script -- for browser-driven validation too particular for a reusable spec, run against Checkly's much larger browser-check time budget rather than an API check's 10-second setup/teardown limit.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "checkly": "^7.15.0"
+  }
+}

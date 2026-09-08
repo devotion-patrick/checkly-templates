@@ -13,6 +13,17 @@ export const defaults: KindDefaults = {
 };
 
 export function factory(entry: CustomApiEntry, ctx: ProjectContext): ApiCheck {
+  if (entry.snippetId !== undefined) {
+    throw new Error(
+      `custom-api entry "${entry.logicalId}" sets snippetId, but this repo's CLI deploy cannot use ` +
+      'a Checkly account-level Snippet -- Checkly does not support them for CLI/constructs-managed ' +
+      'checks. snippetId is for a REST-API consumer (e.g. the Devotion portal) only; use `script` here.',
+    );
+  }
+  if (!entry.script) {
+    throw new Error(`custom-api entry "${entry.logicalId}" must set \`script\` (schema validation should have caught this).`);
+  }
+
   const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? 'EVERY_15M';
   const locations = resolveLocations(entry, ctx);
 

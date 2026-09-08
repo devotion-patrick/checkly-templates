@@ -7,6 +7,7 @@ import { xpathSpaModule } from '@checkly-templates/xpath-spa';
 import { launchReadinessModule } from '@checkly-templates/launch-readiness';
 import { customApiModule } from '@checkly-templates/custom-api';
 import { restrictedAdminModule } from '@checkly-templates/restricted-admin';
+import { customPlaywrightModule } from '@checkly-templates/custom-playwright';
 import type { KindModule } from './types.ts';
 
 // Order here drives the order entries appear in `$defs.entryKinds.oneOf`
@@ -25,6 +26,7 @@ export const MODULES: ReadonlyArray<KindModule<any>> = [
   launchReadinessModule,
   customApiModule,
   restrictedAdminModule,
+  customPlaywrightModule,
 ];
 
 export const REGISTRY: Readonly<Record<string, KindModule<any>>> = Object.freeze(
