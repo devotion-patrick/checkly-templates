@@ -1,4 +1,4 @@
-import { ApiCheck } from 'checkly/constructs';
+import { ApiCheck, RetryStrategyBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
@@ -40,6 +40,7 @@ export function factory(entry: CustomApiEntry, ctx: ProjectContext): ApiCheck {
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],
     activated: entry.activated ?? true,
+    retryStrategy: RetryStrategyBuilder.noRetries(),
     tags,
     environmentVariables: environmentVariables.length > 0 ? environmentVariables : undefined,
     request: {

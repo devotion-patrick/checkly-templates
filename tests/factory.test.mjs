@@ -808,3 +808,34 @@ describe('common factory behavior', () => {
     });
   }
 });
+
+describe('retry strategy', () => {
+  // Every kind whose construct accepts retryStrategy at all -- PlaywrightCheck
+  // (gdpr, launch-readiness, restricted-admin, xpath-spa) deliberately omits
+  // it from its props, its own retries governed by playwright.config.ts
+  // (retries: 0) instead.
+  const supportsRetryStrategy = [
+    { kind: 'uptime-ssl', extra: {} },
+    { kind: 'redirect', extra: { expectedLocation: 'https://example.com/' } },
+    { kind: 'dotnet-health', extra: {} },
+    { kind: 'xpath', extra: { expect: { contains: ['x'] } } },
+    { kind: 'custom-api', extra: { script: 'true;' } },
+    { kind: 'custom-playwright', extra: { script: 'true;' } },
+    { kind: 'custom-multistep', extra: { script: 'true;' } },
+  ];
+
+  for (const { kind, extra } of supportsRetryStrategy) {
+    it(`${kind}: defaults to no retries`, () => {
+      const c = tryFactory(kind, {
+        kind,
+        logicalId: `rs-${kind}`,
+        env: 'PROD',
+        url: 'https://example.com',
+        smoke: true,
+        monitor: false,
+        ...extra,
+      });
+      assert.equal(c.retryStrategy.type, 'NO_RETRIES');
+    });
+  }
+});

@@ -1,4 +1,4 @@
-import { ApiCheck, AssertionBuilder } from 'checkly/constructs';
+import { ApiCheck, AssertionBuilder, RetryStrategyBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
@@ -40,6 +40,7 @@ export function factory(entry: UptimeSslEntry, ctx: ProjectContext): ApiCheck {
     // CLI to reject unknown region IDs at deploy time.
     locations: locations as never[],
     activated: entry.activated ?? true,
+    retryStrategy: RetryStrategyBuilder.noRetries(),
     tags,
     request: {
       method: 'GET',

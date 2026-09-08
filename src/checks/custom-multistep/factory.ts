@@ -1,4 +1,4 @@
-import { MultiStepCheck } from 'checkly/constructs';
+import { MultiStepCheck, RetryStrategyBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { buildCheckName } from '@checkly-templates/shared/check-name';
 import { parseFrequency } from '@checkly-templates/shared/frequency';
@@ -31,6 +31,7 @@ export function factory(entry: CustomMultistepEntry, ctx: ProjectContext): Multi
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],
     activated: entry.activated ?? true,
+    retryStrategy: RetryStrategyBuilder.noRetries(),
     tags,
 
     // The one piece of context a fully consumer-authored script cannot know

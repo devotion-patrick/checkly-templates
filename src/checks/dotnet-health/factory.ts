@@ -1,4 +1,4 @@
-import { ApiCheck } from 'checkly/constructs';
+import { ApiCheck, RetryStrategyBuilder } from 'checkly/constructs';
 import { buildAutoTags, mergeTags } from '@checkly-templates/shared/tags';
 import { resolveHeaders } from '@checkly-templates/shared/headers';
 import { buildCheckName } from '@checkly-templates/shared/check-name';
@@ -124,6 +124,7 @@ export function factory(entry: DotnetHealthEntry, ctx: ProjectContext): ApiCheck
     frequency: parseFrequency(frequencyName),
     locations: locations as never[],
     activated: entry.activated ?? true,
+    retryStrategy: RetryStrategyBuilder.noRetries(),
     tags,
     environmentVariables,
     request: {
