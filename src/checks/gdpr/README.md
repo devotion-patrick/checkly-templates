@@ -62,9 +62,23 @@ For each run:
 4. Classifies cookies against `cookieBlocklist` and outbound requests
    against `trackingDomains`. GTM is handled separately because it can
    be compliant when paired with a consent-mode default=denied.
-5. In **enforce** mode (see above), fails the check with a summary of
-   every violation. In observe-only mode (targeted + unrestricted), logs
-   everything and passes.
+5. In **enforce** mode (see above), reports the run **Degraded** with a
+   summary of every violation. In observe-only mode (targeted +
+   unrestricted), logs everything and passes.
+
+## Severity
+
+A violation reports **Degraded**, not Down. Cookies set before consent is
+a real compliance problem, but it is not the site being down: it wants
+somebody to schedule a fix, not to wake somebody at three in the morning.
+Reported as a failure it competed for attention with genuine outages,
+which is how a report stops being read.
+
+Mechanically this is the `degraded.json` convention — a file left in the
+working directory marks the run Degraded rather than Up, as long as
+nothing else failed. The same mechanism `launch-readiness` uses. The
+console lines are written either way, because they are what names the
+offending cookie or domain.
 
 ## Env-var contract (factory -> spec)
 

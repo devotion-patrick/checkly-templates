@@ -17,6 +17,7 @@
 //                       run is data-driven and the algorithm has no inline
 //                       blocklist to drift from config).
 
+import fs from 'node:fs';
 import { test } from '@playwright/test';
 
 declare const process: { env: Record<string, string | undefined> };
@@ -347,9 +348,25 @@ test('GDPR - no tracking before consent', async ({ page, context }) => {
     );
   }
 
+  // **Degraded, not failed.** Cookies set before consent is a compliance
+  // problem, and a real one, but it is not the site being down -- it wants
+  // somebody to schedule a fix, not to wake somebody at three in the morning.
+  // Reported as failure it competed for attention with genuine outages, which
+  // is how a report stops being read. Checkly has no notion of
+  // assertion-level severity (a run either fails or it does not) except for
+  // this one convention: a `degraded.json` file left in the working directory
+  // marks the run Degraded rather than Up, as long as nothing else failed.
+  // Same mechanism launch-readiness uses, confirmed against a live account.
+  //
+  // The console lines stay regardless, because they are what somebody reads
+  // to find out which cookie or which domain.
   if (failures.length > 0) {
-    throw new Error(
-      `GDPR compliance failed for ${CHECK_TARGET_URL} (region ${regionLabel}):\n\n` + failures.join('\n\n'),
-    );
+    const report =
+      `GDPR compliance failed for ${CHECK_TARGET_URL} (region ${regionLabel}):\n\n`
+      + failures.join('\n\n');
+
+    console.warn(report);
+
+    fs.writeFileSync('degraded.json', JSON.stringify({ messages: failures }));
   }
 });

@@ -15,7 +15,12 @@ export const KIND = 'gdpr' as const;
 // reported that as a failed lookup and forced `inRestricted: true`, meaning
 // every deployed check of this kind was judging against region UNKNOWN --
 // the strictest answer -- rather than where it actually ran.
-export const KIND_VERSION = '1.1.0';
+//
+// Bumped to 1.2.0: a violation reports Degraded rather than failing the
+// run. Cookies before consent is a compliance problem to schedule, not the
+// site being down, and reporting it as a failure put it in the same list as
+// genuine outages.
+export const KIND_VERSION = '1.2.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type GdprPresetName = 'eu-uk-ca' | 'none';
