@@ -139,6 +139,83 @@ async function detectRegion(params: CheckParams): Promise<{
   }
 }
 
+// ---------- Severity ----------
+
+type Severity = 'critical' | 'serious' | 'moderate' | 'advisory';
+
+interface OffendingCookie {
+  name: string;
+  domain: string;
+  party: string;
+  rule: string;
+}
+
+const SEVERITY_ORDER: Severity[] = ['critical', 'serious', 'moderate', 'advisory'];
+
+const SEVERITY_REASON: Record<Severity, string> = {
+  critical: 'cross-site advertising identifier',
+  serious: 'first-party analytics or profiling identifier',
+  moderate: 'third-party embed or consent-mode weakness',
+  advisory: 'no identifier stored',
+};
+
+/**
+ * What a category's cookies actually do, which is what decides how much
+ * trouble they are.
+ *
+ * **Advertising identifiers are the ones regulators act on**: they follow a
+ * person between sites and feed retargeting, so anything an ad platform sets
+ * before consent is critical. Analytics identifiers are a real violation too,
+ * but they profile within one site rather than across the web, and several
+ * supervisory authorities treat first-party analytics far more leniently --
+ * so they rank below. Embeds and consent-mode gaps are configuration
+ * weaknesses: the fix is a setting rather than removing a tag.
+ *
+ * A category somebody adds themselves is treated as serious, because adding
+ * one is a deliberate act and the safe reading of "I care about this cookie"
+ * is not "ignore it".
+ */
+const CATEGORY_SEVERITY: Record<string, Severity> = {
+  google_ads: 'critical',
+  meta: 'critical',
+  google_doubleclick: 'critical',
+  bing: 'critical',
+  linkedin: 'critical',
+  tiktok: 'critical',
+  pinterest: 'critical',
+
+  google_analytics: 'serious',
+  hotjar: 'serious',
+  hubspot: 'serious',
+
+  youtube: 'moderate',
+  google_shared: 'moderate',
+};
+
+/**
+ * Cookies that match a blocklist pattern but store no identifier.
+ *
+ * `test_cookie` is DoubleClick checking whether cookies work at all. It holds
+ * no value tied to a person and is discarded immediately. Counting it beside
+ * a live advertising identifier is what makes a report look worse than it is,
+ * and is part of why an online scanner and this check disagree.
+ */
+const ADVISORY_COOKIES = new Set(['test_cookie']);
+
+/** Endpoints that measure rather than advertise. */
+const ANALYTICS_DOMAINS = new Set(['google-analytics.com', 'analytics.google.com']);
+
+function severityOfCookie(cookie: OffendingCookie): Severity {
+  if (ADVISORY_COOKIES.has(cookie.name)) {
+    return 'advisory';
+  }
+
+  // `rule` is `category:pattern`, as the blocklist is keyed.
+  const category = cookie.rule.split(':')[0] ?? '';
+
+  return CATEGORY_SEVERITY[category] ?? 'serious';
+}
+
 // ---------- Cookie / domain matchers ----------
 
 function matchCookie(name: string, blocklist: Record<string, string[]>): string | null {
@@ -326,25 +403,57 @@ test('GDPR - no tracking before consent', async ({ page, context }) => {
 
   const failures: string[] = [];
 
-  if (offendingCookies.length > 0) {
+  // Worst first, and grouped, so the line somebody reads first is the one
+  // worth acting on. A flat list put "test_cookie" beside a live advertising
+  // identifier and made four findings look like four equal problems.
+  const bySeverity = new Map<Severity, OffendingCookie[]>();
+
+  for (const cookie of offendingCookies) {
+    const severity = severityOfCookie(cookie);
+    bySeverity.set(severity, [...(bySeverity.get(severity) ?? []), cookie]);
+  }
+
+  for (const severity of SEVERITY_ORDER) {
+    const group = bySeverity.get(severity);
+
+    if (!group?.length) {
+      continue;
+    }
+
     failures.push(
-      `Non-essential cookies set before consent (${offendingCookies.length}):` +
-        offendingCookies.map((c) => `\n  - ${c.name} (${c.party}-party @ ${c.domain}) [${c.rule}]`).join(''),
+      `[${severity.toUpperCase()}] ${SEVERITY_REASON[severity]} — `
+        + `${group.length} cookie${group.length === 1 ? '' : 's'} set before consent:`
+        + group.map((c) => `\n  - ${c.name} (${c.party}-party @ ${c.domain}) [${c.rule}]`).join(''),
     );
   }
 
   if (trackingHits.length > 0) {
-    failures.push(
-      `Tracking requests fired before consent (${trackingHits.length}) to:` +
-        trackingDomainsHit.map((d) => `\n  - ${d}`).join(''),
-    );
+    // An analytics endpoint is a lesser problem than an ad-tech one: it
+    // profiles within this site rather than across the web.
+    const adTech = trackingDomainsHit.filter((d) => !ANALYTICS_DOMAINS.has(d));
+    const analytics = trackingDomainsHit.filter((d) => ANALYTICS_DOMAINS.has(d));
+
+    if (adTech.length > 0) {
+      failures.push(
+        `[CRITICAL] ${SEVERITY_REASON.critical} — advertising requests fired before consent to:`
+          + adTech.map((d) => `\n  - ${d}`).join(''),
+      );
+    }
+
+    if (analytics.length > 0) {
+      failures.push(
+        `[SERIOUS] ${SEVERITY_REASON.serious} — analytics requests fired before consent to:`
+          + analytics.map((d) => `\n  - ${d}`).join(''),
+      );
+    }
   }
 
   if (gtmHit && !consentDefault) {
     failures.push(
-      "GTM loaded but no Consent Mode default=denied was set first. " +
-        "Configure gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' }) " +
-        'before the GTM container script.',
+      `[MODERATE] ${SEVERITY_REASON.moderate} — `
+        + 'GTM loaded but no Consent Mode default=denied was set first. '
+        + "Configure gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' }) "
+        + 'before the GTM container script.',
     );
   }
 

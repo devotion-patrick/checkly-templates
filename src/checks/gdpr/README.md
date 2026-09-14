@@ -68,6 +68,38 @@ For each run:
 
 ## Severity
 
+Findings are ranked, worst first, because a flat list put `test_cookie`
+beside a live advertising identifier and made four findings look like
+four equal problems.
+
+| Rank | What it means | Categories |
+| --- | --- | --- |
+| **CRITICAL** | Cross-site advertising identifier. Follows a person between sites and feeds retargeting, and the class regulators actually act on | `google_ads`, `meta`, `google_doubleclick`, `bing`, `linkedin`, `tiktok`, `pinterest`, plus ad-tech requests |
+| **SERIOUS** | First-party analytics or profiling identifier. A real violation, but it profiles within one site rather than across the web, and several supervisory authorities treat first-party analytics far more leniently | `google_analytics`, `hotjar`, `hubspot`, plus analytics requests |
+| **MODERATE** | Third-party embed or consent-mode weakness. The fix is a setting rather than removing a tag | `youtube`, `google_shared`, GTM without a denied default |
+| **ADVISORY** | Matches a pattern but stores no identifier | `test_cookie` |
+
+A category added through `overrides` ranks **SERIOUS**: adding one is a
+deliberate act, and the safe reading of "I care about this cookie" is not
+"ignore it".
+
+### Why an online scanner may disagree
+
+Two reasons, and both are worth knowing before treating a pass elsewhere
+as the last word.
+
+Most scanners stop once they see Consent Mode `default=denied` recorded
+before the tags load. This check goes further and asks whether the
+cookies actually stayed unset — a site can record the default correctly
+and still write `_ga`, which is a violation that a consent-mode check
+alone will not see.
+
+Scanners also test from wherever they run, and a site that gates consent
+by region behaves differently depending on where it is asked from. This
+check resolves its own region (see `restrictedRegions`), so in
+**targeted** mode an unrestricted run is observe-only and passes, while a
+restricted one enforces.
+
 A violation reports **Degraded**, not Down. Cookies set before consent is
 a real compliance problem, but it is not the site being down: it wants
 somebody to schedule a fix, not to wake somebody at three in the morning.

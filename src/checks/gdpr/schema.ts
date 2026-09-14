@@ -20,7 +20,11 @@ export const KIND = 'gdpr' as const;
 // run. Cookies before consent is a compliance problem to schedule, not the
 // site being down, and reporting it as a failure put it in the same list as
 // genuine outages.
-export const KIND_VERSION = '1.2.0';
+//
+// Bumped to 1.3.0: findings are ranked and grouped worst-first, so an
+// advertising identifier is not reported as the equal of a cookie probe
+// that stores nothing.
+export const KIND_VERSION = '1.3.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type GdprPresetName = 'eu-uk-ca' | 'none';
