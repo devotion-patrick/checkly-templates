@@ -30,6 +30,7 @@ const EXPECTED_KINDS = [
   'restricted-admin',
   'custom-playwright',
   'custom-multistep',
+  'security-headers',
 ];
 
 describe('schema-content: top-level shape', () => {

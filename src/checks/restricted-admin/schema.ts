@@ -9,7 +9,10 @@ export const KIND = 'restricted-admin' as const;
 // @checkly-templates/shared/tags), so a consumer of this registry (e.g.
 // a UI that pushes checks) can compare a deployed check's tag against
 // this constant to know whether a newer template is available to push.
-export const KIND_VERSION = '1.0.0';
+// Bumped to 1.1.0: reuses launch-readiness's spec, which now leaves a
+// degraded.json marker for a warning-only outcome (see that kind's
+// schema.ts for the full note).
+export const KIND_VERSION = '1.1.0';
 
 export interface RestrictedAdminEntry extends CommonEntryFields {
   kind: typeof KIND;

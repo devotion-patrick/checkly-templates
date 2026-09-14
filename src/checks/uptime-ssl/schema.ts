@@ -10,21 +10,17 @@ export const KIND = 'uptime-ssl' as const;
 // a UI that pushes checks) can compare a deployed check's tag against
 // this constant to know whether a newer template is available to push.
 //
-// Bumped to 2.0.0: a redirect used to be followed silently and judged only
-// on where it landed; it is now a failure in its own right. securityHeaders
-// is new (default on).
-export const KIND_VERSION = '2.0.0';
-
-// The baseline security-header set, applied when `securityHeaders` is left
-// at its default `true`. Mirrors the launch-readiness kind's own example
-// list so the two kinds agree on what "the standard headers" means.
-export const DEFAULT_SECURITY_HEADERS = [
-  'X-Content-Type-Options',
-  'X-Frame-Options',
-  'Strict-Transport-Security',
-  'Referrer-Policy',
-  'Content-Security-Policy',
-] as const;
+// Bumped to 3.0.0: the underlying construct changed from ApiCheck to
+// UrlMonitor. Patrick: "i need uptime-ssl to use the FREE frequency
+// check. the literal uptime monitor. so this can run every minute
+// without incurring a billion costs." A UrlMonitor is billed by monitor
+// count, not by run, unlike every other kind in this repository -- which
+// is exactly why it can default to EVERY_1M for free where an ApiCheck
+// could not. The tradeoff is that a UrlMonitor is declarative-only (status
+// code assertions, no script), so `securityHeaders` moved out to its own
+// `security-headers` kind, which still needs a scriptable runtime to
+// report Degraded.
+export const KIND_VERSION = '3.0.0';
 
 export interface UptimeSslEntry extends CommonEntryFields {
   kind: typeof KIND;
@@ -32,11 +28,6 @@ export interface UptimeSslEntry extends CommonEntryFields {
   sslCertificateExpiryThresholdDays?: number;
   // Acceptable success status range. Default: 200-299.
   successStatusRange?: { min: number; max: number };
-  // Response headers required to be present. `true` (default): the baseline
-  // set above. `false`: skip the header check entirely. An array: check
-  // exactly these instead. A missing header degrades the check; it does not
-  // mark it down the way a redirect or an out-of-range status does.
-  securityHeaders?: boolean | string[];
 }
 
 export const uptimeSslSchemaFragment = {
@@ -62,18 +53,6 @@ export const uptimeSslSchemaFragment = {
         max: { type: 'integer', minimum: 100, maximum: 599 },
       },
       description: 'Inclusive status-code range counted as success. Defaults to 200-299.',
-    },
-    securityHeaders: {
-      oneOf: [
-        { type: 'boolean' },
-        { type: 'array', items: { type: 'string', minLength: 1 }, minItems: 1 },
-      ],
-      default: true,
-      description:
-        'Response headers required to be present. true: a baseline set '
-        + `(${DEFAULT_SECURITY_HEADERS.join(', ')}). false: skip. An array: `
-        + 'check exactly these instead. A missing header degrades the check '
-        + 'rather than marking it down.',
     },
   },
   allOf: [smokeOrMonitorConstraint],

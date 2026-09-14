@@ -24,7 +24,7 @@ describe('uptime-ssl factory', () => {
     assert.equal(c.request.url, 'https://example.com');
   });
 
-  it('forces followRedirects=false so a redirect is visible to the teardown script', () => {
+  it('forces followRedirects=false so a redirect fails the status-code assertion directly', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'u2',
@@ -36,7 +36,7 @@ describe('uptime-ssl factory', () => {
     assert.equal(c.request.followRedirects, false);
   });
 
-  it('always attaches a tearDownScript with inline content', () => {
+  it('emits a status-range assertion (default 200-299 inclusive)', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'u2b',
@@ -45,7 +45,7 @@ describe('uptime-ssl factory', () => {
       smoke: false,
       monitor: true,
     });
-    assert.ok(c.tearDownScript?.content?.includes('UPTIME_SSL_PARAMS'));
+    assert.equal(c.request.assertions.length, 2);
   });
 
   it('emits source tag and prefix triple when project has prefix+codename', () => {
@@ -93,18 +93,11 @@ describe('uptime-ssl factory', () => {
   });
 });
 
-describe('uptime-ssl factory: severity params (via UPTIME_SSL_PARAMS + tearDownScript)', () => {
-  // A redirect and a missing security header are both findings, but a
-  // declarative assertions array can't tell Checkly "the first is Down,
-  // the second is Degraded" — Checkly has no such distinction. All of
-  // that logic lives in a teardown script instead; see factory.ts's
-  // TEARDOWN_SCRIPT comment. These tests assert on the params travelling
-  // to it rather than a request.assertions array that no longer exists.
-  function params(c) {
-    return JSON.parse(c.environmentVariables.find((v) => v.key === 'UPTIME_SSL_PARAMS').value);
-  }
-
-  it('defaults successMin/successMax to 200/299', () => {
+describe('uptime-ssl factory: status-range assertion bounds', () => {
+  // UrlAssertionBuilder only exposes greaterThan/lessThan (strict), so an
+  // inclusive range widens by one on each side -- the same shape ApiCheck's
+  // AssertionBuilder used before this kind became a UrlMonitor.
+  it('defaults to greaterThan(199) / lessThan(300)', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'ua1',
@@ -113,9 +106,11 @@ describe('uptime-ssl factory: severity params (via UPTIME_SSL_PARAMS + tearDownS
       smoke: false,
       monitor: true,
     });
-    const p = params(c);
-    assert.equal(p.successMin, 200);
-    assert.equal(p.successMax, 299);
+    const [min, max] = c.request.assertions;
+    assert.equal(min.comparison, 'GREATER_THAN');
+    assert.equal(min.target, '199');
+    assert.equal(max.comparison, 'LESS_THAN');
+    assert.equal(max.target, '300');
   });
 
   it('honours a custom successStatusRange', () => {
@@ -128,53 +123,9 @@ describe('uptime-ssl factory: severity params (via UPTIME_SSL_PARAMS + tearDownS
       smoke: false,
       monitor: true,
     });
-    const p = params(c);
-    assert.equal(p.successMin, 200);
-    assert.equal(p.successMax, 399);
-  });
-
-  it('defaults securityHeaders to the baseline set', () => {
-    const c = tryFactory('uptime-ssl', {
-      kind: 'uptime-ssl',
-      logicalId: 'ua3',
-      env: 'PROD',
-      url: 'https://example.com',
-      smoke: false,
-      monitor: true,
-    });
-    assert.deepEqual(params(c).securityHeaders, [
-      'X-Content-Type-Options',
-      'X-Frame-Options',
-      'Strict-Transport-Security',
-      'Referrer-Policy',
-      'Content-Security-Policy',
-    ]);
-  });
-
-  it('securityHeaders: false skips the header check entirely', () => {
-    const c = tryFactory('uptime-ssl', {
-      kind: 'uptime-ssl',
-      logicalId: 'ua4',
-      env: 'PROD',
-      url: 'https://example.com',
-      securityHeaders: false,
-      smoke: false,
-      monitor: true,
-    });
-    assert.deepEqual(params(c).securityHeaders, []);
-  });
-
-  it('an explicit securityHeaders array overrides the baseline set', () => {
-    const c = tryFactory('uptime-ssl', {
-      kind: 'uptime-ssl',
-      logicalId: 'ua5',
-      env: 'PROD',
-      url: 'https://example.com',
-      securityHeaders: ['Content-Security-Policy'],
-      smoke: false,
-      monitor: true,
-    });
-    assert.deepEqual(params(c).securityHeaders, ['Content-Security-Policy']);
+    const [min, max] = c.request.assertions;
+    assert.equal(min.target, '199');
+    assert.equal(max.target, '400');
   });
 });
 
@@ -207,7 +158,14 @@ describe('redirect factory', () => {
   });
 });
 
-describe('dotnet-health factory: URL composition', () => {
+describe('dotnet-health factory: URL composition (via CHECK_TARGET_URL)', () => {
+  // MultiStepCheck has no request.url of its own -- the script builds the
+  // request itself from an env var. These tests assert on that env var
+  // rather than a request object that no longer exists.
+  function targetUrl(c) {
+    return c.environmentVariables.find((v) => v.key === 'CHECK_TARGET_URL').value;
+  }
+
   it('uses url as-is when healthPath is unset', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
@@ -217,7 +175,7 @@ describe('dotnet-health factory: URL composition', () => {
       smoke: true,
       monitor: false,
     });
-    assert.equal(c.request.url, 'https://api.example.com/healthz/ready');
+    assert.equal(targetUrl(c), 'https://api.example.com/healthz/ready');
   });
 
   it('appends healthPath when set', () => {
@@ -230,7 +188,7 @@ describe('dotnet-health factory: URL composition', () => {
       smoke: true,
       monitor: false,
     });
-    assert.equal(c.request.url, 'https://api.example.com/health');
+    assert.equal(targetUrl(c), 'https://api.example.com/health');
   });
 
   it('handles trailing slash on url with leading slash on path (no double)', () => {
@@ -243,7 +201,7 @@ describe('dotnet-health factory: URL composition', () => {
       smoke: true,
       monitor: false,
     });
-    assert.equal(c.request.url, 'https://api.example.com/health');
+    assert.equal(targetUrl(c), 'https://api.example.com/health');
   });
 
   it('does not append the previous default "/health" when healthPath is undefined', () => {
@@ -258,13 +216,21 @@ describe('dotnet-health factory: URL composition', () => {
       smoke: false,
       monitor: true,
     });
-    assert.equal(c.request.url, 'https://api.example.com/some/deep/path');
-    assert.ok(!c.request.url.endsWith('/health'));
+    assert.equal(targetUrl(c), 'https://api.example.com/some/deep/path');
+    assert.ok(!targetUrl(c).endsWith('/health'));
   });
 });
 
 describe('dotnet-health factory: headers (literal value)', () => {
-  it('always includes Accept: application/json', () => {
+  // Headers travel to the script as data in DOTNET_HEALTH_PARAMS.headers
+  // (the script builds its own headers object from process.env directly,
+  // so there is no {{VAR}} templating and no declarative request.headers
+  // array — see factory.ts's resolveHeadersForScript).
+  function headerParams(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'DOTNET_HEALTH_PARAMS').value).headers;
+  }
+
+  it('always includes Accept: application/json in the script itself', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'dh-hdr-1',
@@ -273,11 +239,11 @@ describe('dotnet-health factory: headers (literal value)', () => {
       smoke: true,
       monitor: false,
     });
-    const accept = c.request.headers?.find((h) => h.key.toLowerCase() === 'accept');
-    assert.equal(accept?.value, 'application/json');
+    assert.ok(c.code.content.includes("Accept: 'application/json'"));
+    assert.deepEqual(headerParams(c), []);
   });
 
-  it('appends literal-value headers after the default', () => {
+  it('carries a literal-value header as data', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'dh-hdr-2',
@@ -287,11 +253,10 @@ describe('dotnet-health factory: headers (literal value)', () => {
       smoke: true,
       monitor: false,
     });
-    const keys = c.request.headers.map((h) => h.key);
-    assert.deepEqual(keys, ['Accept', 'X-Tenant']);
+    assert.deepEqual(headerParams(c), [{ key: 'X-Tenant', value: 'acme' }]);
   });
 
-  it('lets the consumer override Accept (HTTP last-key-wins)', () => {
+  it('lets the consumer override Accept via the same data path', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'dh-hdr-3',
@@ -301,13 +266,15 @@ describe('dotnet-health factory: headers (literal value)', () => {
       smoke: true,
       monitor: false,
     });
-    const accepts = c.request.headers.filter((h) => h.key === 'Accept');
-    assert.equal(accepts.length, 2);
-    assert.equal(accepts[1].value, 'application/health+json');
+    assert.deepEqual(headerParams(c), [{ key: 'Accept', value: 'application/health+json' }]);
   });
 });
 
 describe('dotnet-health factory: headers (valueFromEnv)', () => {
+  function headerParams(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'DOTNET_HEALTH_PARAMS').value).headers;
+  }
+
   it('resolves valueFromEnv from process.env at deploy time and stashes as per-check env', () => {
     const prev = process.env.TEST_HEALTH_KEY;
     process.env.TEST_HEALTH_KEY = 's3cret-from-ci';
@@ -321,9 +288,10 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
         smoke: true,
         monitor: false,
       });
-      // Header gets the template, not the literal secret.
-      const hk = c.request.headers.find((h) => h.key === 'X-Health-Key');
-      assert.equal(hk.value, '{{TEST_HEALTH_KEY}}');
+      // The script reads process.env at run time by name, not a literal secret.
+      const hk = headerParams(c).find((h) => h.key === 'X-Health-Key');
+      assert.equal(hk.envVar, 'TEST_HEALTH_KEY');
+      assert.equal(hk.value, undefined);
       // The secret lands in the per-check env vars, scoped to this construct.
       const env = c.environmentVariables.find((v) => v.key === 'TEST_HEALTH_KEY');
       assert.equal(env.value, 's3cret-from-ci');
@@ -350,7 +318,7 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
     );
   });
 
-  it('emits only DOTNET_HEALTH_PARAMS when no header uses valueFromEnv', () => {
+  it('emits only CHECK_TARGET_URL and DOTNET_HEALTH_PARAMS when no header uses valueFromEnv', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'dh-no-env',
@@ -359,10 +327,8 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
       smoke: true,
       monitor: false,
     });
-    // The severity-check params always ride along as an env var; only a
-    // header's valueFromEnv adds anything beyond that one.
     const keys = c.environmentVariables.map((v) => v.key);
-    assert.deepEqual(keys, ['DOTNET_HEALTH_PARAMS']);
+    assert.deepEqual(keys, ['CHECK_TARGET_URL', 'DOTNET_HEALTH_PARAMS']);
   });
 
   it('mixes literal and valueFromEnv headers in declared order', () => {
@@ -380,16 +346,17 @@ describe('dotnet-health factory: headers (valueFromEnv)', () => {
         smoke: true,
         monitor: false,
       });
-      const keys = c.request.headers.map((h) => h.key);
-      assert.deepEqual(keys, ['Accept', 'X-Tenant', 'X-Health-Key']);
-      assert.equal(c.request.headers.find((h) => h.key === 'X-Health-Key').value, '{{MIX_KEY}}');
+      assert.deepEqual(headerParams(c), [
+        { key: 'X-Tenant', value: 'acme' },
+        { key: 'X-Health-Key', envVar: 'MIX_KEY' },
+      ]);
     } finally {
       delete process.env.MIX_KEY;
     }
   });
 });
 
-describe('dotnet-health factory: severity params (via DOTNET_HEALTH_PARAMS + tearDownScript)', () => {
+describe('dotnet-health factory: severity params (via DOTNET_HEALTH_PARAMS + script)', () => {
   // Declarative statusCode/jsonBody assertions can't express "degraded is
   // a warning, unhealthy is a failure" — see factory.ts's TEARDOWN_SCRIPT
   // comment. All of that logic now lives in a teardown script whose
@@ -477,7 +444,7 @@ describe('dotnet-health factory: severity params (via DOTNET_HEALTH_PARAMS + tea
     assert.equal(p.failOnDegraded, true);
   });
 
-  it('always attaches a tearDownScript with inline content', () => {
+  it('always attaches inline script content reading DOTNET_HEALTH_PARAMS', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'da4',
@@ -486,7 +453,7 @@ describe('dotnet-health factory: severity params (via DOTNET_HEALTH_PARAMS + tea
       smoke: false,
       monitor: true,
     });
-    assert.ok(c.tearDownScript?.content?.includes('DOTNET_HEALTH_PARAMS'));
+    assert.ok(c.code?.content?.includes('DOTNET_HEALTH_PARAMS'));
   });
 });
 
@@ -855,6 +822,70 @@ describe('custom-multistep factory', () => {
   });
 });
 
+describe('security-headers factory', () => {
+  function params(c) {
+    return JSON.parse(c.environmentVariables.find((v) => v.key === 'SECURITY_HEADERS_PARAMS').value);
+  }
+
+  it('is a MultiStepCheck carrying CHECK_TARGET_URL and SECURITY_HEADERS_PARAMS', () => {
+    const c = tryFactory('security-headers', {
+      kind: 'security-headers',
+      logicalId: 'sh1',
+      env: 'PROD',
+      url: 'https://www.example.com',
+      smoke: false,
+      monitor: true,
+    });
+    const keys = c.environmentVariables.map((v) => v.key);
+    assert.deepEqual(keys, ['CHECK_TARGET_URL', 'SECURITY_HEADERS_PARAMS']);
+    assert.equal(c.environmentVariables[0].value, 'https://www.example.com');
+  });
+
+  it('defaults securityHeaders to the baseline set', () => {
+    const c = tryFactory('security-headers', {
+      kind: 'security-headers',
+      logicalId: 'sh2',
+      env: 'PROD',
+      url: 'https://www.example.com',
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).securityHeaders, [
+      'X-Content-Type-Options',
+      'X-Frame-Options',
+      'Strict-Transport-Security',
+      'Referrer-Policy',
+      'Content-Security-Policy',
+    ]);
+  });
+
+  it('an explicit securityHeaders array overrides the baseline set', () => {
+    const c = tryFactory('security-headers', {
+      kind: 'security-headers',
+      logicalId: 'sh3',
+      env: 'PROD',
+      url: 'https://www.example.com',
+      securityHeaders: ['Content-Security-Policy'],
+      smoke: false,
+      monitor: true,
+    });
+    assert.deepEqual(params(c).securityHeaders, ['Content-Security-Policy']);
+  });
+
+  it('writes degraded.json rather than throwing for a missing header', () => {
+    const c = tryFactory('security-headers', {
+      kind: 'security-headers',
+      logicalId: 'sh4',
+      env: 'PROD',
+      url: 'https://www.example.com',
+      smoke: false,
+      monitor: true,
+    });
+    assert.ok(c.code.content.includes("writeFileSync('degraded.json'"));
+    assert.ok(!c.code.content.includes('throw new Error'));
+  });
+});
+
 describe('common factory behavior', () => {
   const everyKind = [
     { kind: 'uptime-ssl', extra: {} },
@@ -867,6 +898,7 @@ describe('common factory behavior', () => {
     { kind: 'restricted-admin', extra: { expectedAccess: 'gated' } },
     { kind: 'custom-playwright', extra: { script: 'true;' } },
     { kind: 'custom-multistep', extra: { script: 'true;' } },
+    { kind: 'security-headers', extra: {} },
   ];
 
   for (const { kind, extra } of everyKind) {
@@ -919,6 +951,7 @@ describe('retry strategy', () => {
     { kind: 'custom-api', extra: { script: 'true;' } },
     { kind: 'custom-playwright', extra: { script: 'true;' } },
     { kind: 'custom-multistep', extra: { script: 'true;' } },
+    { kind: 'security-headers', extra: {} },
   ];
 
   for (const { kind, extra } of supportsRetryStrategy) {

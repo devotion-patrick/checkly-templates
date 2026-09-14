@@ -9,7 +9,13 @@ export const KIND = 'dotnet-health' as const;
 // @checkly-templates/shared/tags), so a consumer of this registry (e.g.
 // a UI that pushes checks) can compare a deployed check's tag against
 // this constant to know whether a newer template is available to push.
-export const KIND_VERSION = '1.0.0';
+// Bumped to 2.0.0: the underlying construct changed from ApiCheck to
+// MultiStepCheck, because only a Playwright-based runtime can leave the
+// degraded.json marker a degraded component now reports -- an ApiCheck's
+// teardown script has no filesystem access to write it. Previously a
+// degraded component was only a console warning, never seen outside
+// Checkly's own run log.
+export const KIND_VERSION = '2.0.0';
 
 export interface DotnetHealthEntry extends CommonEntryFields {
   kind: typeof KIND;

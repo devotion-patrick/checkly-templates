@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { tryFactory } from './helpers.mjs';
 
 describe('synthesize: ApiCheck kinds', () => {
-  it('uptime-ssl synthesises with method=GET, the configured url, and followRedirects=false', () => {
+  it('uptime-ssl synthesises as a URL monitor with method=GET, the configured url, and followRedirects=false', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'syn-uptime',
@@ -19,12 +19,11 @@ describe('synthesize: ApiCheck kinds', () => {
       monitor: true,
     });
     const out = c.synthesize();
-    assert.equal(out.checkType, 'API');
+    assert.equal(out.checkType, 'URL');
     assert.equal(out.request.method, 'GET');
     assert.equal(out.request.url, 'https://example.com');
     assert.equal(out.request.followRedirects, false);
-    const params = out.environmentVariables.find((v) => v.key === 'UPTIME_SSL_PARAMS');
-    assert.ok(params, 'expected UPTIME_SSL_PARAMS env var');
+    assert.ok(Array.isArray(out.request.assertions) && out.request.assertions.length >= 2);
   });
 
   it('redirect synthesises with followRedirects=false', () => {
@@ -41,7 +40,7 @@ describe('synthesize: ApiCheck kinds', () => {
     assert.equal(out.request.followRedirects, false);
   });
 
-  it('dotnet-health synthesises with Accept: application/json header', () => {
+  it('dotnet-health synthesises as a MultiStepCheck carrying its target url and params', () => {
     const c = tryFactory('dotnet-health', {
       kind: 'dotnet-health',
       logicalId: 'syn-health',
@@ -51,9 +50,10 @@ describe('synthesize: ApiCheck kinds', () => {
       monitor: false,
     });
     const out = c.synthesize();
-    const acceptHeader = out.request.headers?.find((h) => h.key.toLowerCase() === 'accept');
-    assert.ok(acceptHeader, 'expected Accept header');
-    assert.equal(acceptHeader.value, 'application/json');
+    assert.equal(out.checkType, 'MULTI_STEP');
+    const env = Object.fromEntries(out.environmentVariables.map((v) => [v.key, v.value]));
+    assert.equal(env.CHECK_TARGET_URL, 'https://api.example.com/health');
+    assert.equal(typeof env.DOTNET_HEALTH_PARAMS, 'string');
   });
 
   it('xpath synthesises the consumer-provided url verbatim', () => {

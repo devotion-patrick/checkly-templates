@@ -9,7 +9,11 @@ export const KIND = 'launch-readiness' as const;
 // @checkly-templates/shared/tags), so a consumer of this registry (e.g.
 // a UI that pushes checks) can compare a deployed check's tag against
 // this constant to know whether a newer template is available to push.
-export const KIND_VERSION = '1.0.0';
+// Bumped to 1.1.0: a warning with no findings now leaves a degraded.json
+// marker, so the run reports Degraded rather than a silent Up. Nothing
+// about the schema or its assertions changed, only what an existing
+// warning-only outcome now leaves behind.
+export const KIND_VERSION = '1.1.0';
 
 // Each check below is independently togglable. Boolean `true` enables the
 // check with its default options; an options object enables with overrides;

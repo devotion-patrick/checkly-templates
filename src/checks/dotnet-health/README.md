@@ -1,23 +1,26 @@
 # dotnet-health-check
 
-ApiCheck kind tailored to ASP.NET Core's standard
+MultiStepCheck kind tailored to ASP.NET Core's standard
 [Health Checks](https://learn.microsoft.com/aspnet/core/host-and-deploy/health-checks)
 JSON response, but the status field's path and its healthy/degraded
 values are all overridable — so it also covers any other JSON
 health-check convention (Spring Boot Actuator's `UP`/`DOWN`, a custom
 in-house shape, etc.), not just ASP.NET Core's.
 
-**Severity, not just pass/fail**: a *degraded* response is reported as a
-non-blocking warning by default (visible in the check's log, doesn't
-fail the check) — only *unhealthy* fails it. Set `failOnDegraded: true`
-per entry if you want zero tolerance instead. This is why the check no
-longer relies on declarative `statusCode`/`jsonBody` assertions: ASP.NET
-Core's default status-code mapping sends the *same* HTTP 200 for both
-Healthy and Degraded, so a status-code check alone can't see Degraded at
-all, and a strict body-equality check can't tell "degraded" from
-"unhealthy" — both just "don't equal Healthy". A teardown script
-(`tearDownScript`, see [Checkly's setup/teardown docs](https://www.checklyhq.com/docs/detect/synthetic-monitoring/api-checks/setup-and-teardown/))
-inspects the real response body and classifies it explicitly instead.
+**Severity, not just pass/fail**: a *degraded* response is reported as
+`Degraded`, not `Down`, by default — only *unhealthy* fails the check
+outright. Set `failOnDegraded: true` per entry if you want zero
+tolerance instead. This is why the check doesn't rely on declarative
+`statusCode`/`jsonBody` assertions: ASP.NET Core's default status-code
+mapping sends the *same* HTTP 200 for both Healthy and Degraded, so a
+status-code check alone can't see Degraded at all, and a strict
+body-equality check can't tell "degraded" from "unhealthy" — both just
+"don't equal Healthy". A script inspects the real response body and
+classifies it explicitly instead, throwing for a real finding and
+leaving a `degraded.json` marker (Checkly's own convention for "this
+run is Degraded, not merely Up") for a degraded-only outcome — which
+needs a Playwright-based runtime, hence MultiStepCheck rather than
+ApiCheck.
 
 ## Consumer config
 
@@ -66,7 +69,7 @@ If your endpoint isn't ASP.NET Core's exact response shape:
 | `degradedValues`        | no       | Values that count as degraded (a warning, not a failure — unless `failOnDegraded`). Default `["Degraded"]`. Anything not healthy or degraded fails the check |
 | `failOnDegraded`        | no       | Treat degraded the same as unhealthy (hard fail). Default `false` |
 | `expectedOverallStatus` | no       | Deprecated alias for `healthyValues: [expectedOverallStatus]`. Only used when `healthyValues` is unset |
-| `headers`               | no       | Extra request headers. Use `{{VAR}}` to reference Checkly env vars for secrets (see below) |
+| `headers`               | no       | Extra request headers. Use `valueFromEnv` to reference a deploy-time secret (see below) |
 
 ## Authenticating to the health endpoint
 
@@ -86,8 +89,8 @@ ADO variable          "HEALTH_KEY" (your choice of env-var-friendly name)
 process env in Node   process.env.HEALTH_KEY = <secret value>
         ↓ (the factory reads it via `valueFromEnv` in checks.json)
 Per-check Checkly env "HEALTH_KEY" on the check construct (scoped to its logicalId)
-        ↓ (the factory rewrites the header value to `{{HEALTH_KEY}}`)
-HTTP header at run    X-Health-Key: <secret> ← resolved server-side by Checkly
+        ↓ (the check's own script reads process.env.HEALTH_KEY directly)
+HTTP header at run    X-Health-Key: <secret>
 ```
 
 You author **three** pieces of config. Each one is needed:
@@ -138,10 +141,11 @@ extends:
 
 `valueFromEnv` references the same name you aliased in step 1 and
 forwarded in step 2. The factory reads `process.env.HEALTH_KEY` at
-deploy time, stashes it as a per-check Checkly env var on this
+deploy time and stashes it as a per-check Checkly env var on this
 construct (scoped to `logicalId: acme-api-prod-health` — sibling
-checks don't see it), and rewrites the header to `{{HEALTH_KEY}}`
-which Checkly resolves at run time from that per-check env.
+checks don't see it); the check's own script reads
+`process.env.HEALTH_KEY` directly at run time and sets the header
+itself.
 
 If any of these three pieces is missing, the deploy fails loudly with
 a message naming both the check's logicalId and the missing env var.

@@ -224,23 +224,6 @@
                   }
                 },
                 "description": "Inclusive status-code range counted as success. Defaults to 200-299."
-              },
-              "securityHeaders": {
-                "oneOf": [
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "minItems": 1
-                  }
-                ],
-                "default": true,
-                "description": "Response headers required to be present. true: a baseline set (X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, Referrer-Policy, Content-Security-Policy). false: skip. An array: check exactly these instead. A missing header degrades the check rather than marking it down."
               }
             },
             "allOf": [
@@ -2092,6 +2075,126 @@
                 "type": "string",
                 "minLength": 1,
                 "description": "Full Multistep check script, run as this check's entire body via Checkly's MultiStepCheck `code.content`. `request` (Playwright's APIRequestContext) and `process.env` (including CHECK_TARGET_URL) are available -- no `page`, no browser. There is no separate assertions field, the script is the whole check."
+              }
+            },
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "smoke": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "smoke"
+                    ]
+                  },
+                  {
+                    "properties": {
+                      "monitor": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "monitor"
+                    ]
+                  }
+                ],
+                "errorMessage": "Each check must set `smoke: true`, `monitor: true`, or both."
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "logicalId",
+              "url"
+            ],
+            "properties": {
+              "$comment": {
+                "type": "string",
+                "description": "Free-form annotation. Ignored at deploy time; useful for documenting why an entry exists."
+              },
+              "logicalId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9-]*$",
+                "description": "Stable kebab-case slug. Renaming is destructive in Checkly."
+              },
+              "env": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Free-form environment label (e.g. PROD / UAT). Drives the auto-emitted env tag. Required either here or on `project.defaults.env`; entry-level overrides project-level."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute URL the check exercises."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Override the auto-composed Checkly check name. When unset, the factory emits `{codename|project.name} - {env} - {kind} - {url}`."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra tags merged with the auto-emitted set."
+              },
+              "activated": {
+                "type": "boolean",
+                "description": "Whether the check is scheduled (defaults to true).",
+                "default": true
+              },
+              "frequency": {
+                "enum": [
+                  "EVERY_10S",
+                  "EVERY_30S",
+                  "EVERY_1M",
+                  "EVERY_2M",
+                  "EVERY_5M",
+                  "EVERY_10M",
+                  "EVERY_15M",
+                  "EVERY_30M",
+                  "EVERY_1H",
+                  "EVERY_6H",
+                  "EVERY_12H",
+                  "EVERY_24H"
+                ],
+                "description": "Override the project default frequency."
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Override the project default location set."
+              },
+              "smoke": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in smoke-gate mode (CHECKLY_PURPOSE=test, `checkly test`). At least one of `smoke` or `monitor` must be true."
+              },
+              "monitor": {
+                "type": "boolean",
+                "description": "Include this entry when the pipeline runs in continuous-monitor mode (CHECKLY_PURPOSE=monitor, `checkly deploy`). At least one of `smoke` or `monitor` must be true."
+              },
+              "kind": {
+                "const": "security-headers"
+              },
+              "securityHeaders": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Response headers required to be present. Default: the baseline set (X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, Referrer-Policy, Content-Security-Policy)."
               }
             },
             "allOf": [

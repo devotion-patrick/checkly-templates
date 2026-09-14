@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Checkly ApiCheck: URL returns success status + TLS cert is more than N days from expiry.",
+  "description": "Checkly UrlMonitor: URL returns success status with no redirect, and TLS cert is more than N days from expiry. Billed by monitor count, not by run.",
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",

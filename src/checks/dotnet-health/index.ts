@@ -8,6 +8,7 @@ export const dotnetHealthModule: KindModule<DotnetHealthEntry> = {
   schemaFragment: dotnetHealthSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,
+  isPlaywright: true,
 };
 
 export * from './schema.ts';

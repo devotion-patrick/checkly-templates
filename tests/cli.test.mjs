@@ -9,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { repoRoot } from './helpers.mjs';
+import { repoRoot, REGISTRY } from './helpers.mjs';
 
 const inspect = path.join(repoRoot, 'scripts', 'inspect-config.mjs');
 const buildSchema = path.join(repoRoot, 'src', 'deploy', 'build-schema.mjs');
@@ -52,7 +52,14 @@ before(() => {
     }),
   );
 
-  const PLAYWRIGHT_KINDS = new Set(['gdpr', 'xpath-spa', 'launch-readiness', 'restricted-admin']);
+  // Derived from the registry rather than hardcoded: a kind's own
+  // isPlaywright flag is the single source of truth, and this fixture
+  // going stale against it is exactly the bug that happened once already
+  // (dotnet-health and security-headers both moved onto a Playwright-based
+  // runtime after this list was first written).
+  const PLAYWRIGHT_KINDS = new Set(
+    Object.values(REGISTRY).filter((m) => m.isPlaywright === true).map((m) => m.kind),
+  );
 
   fixtureApiOnly = path.join(tmp, 'fixture-api-only-' + Date.now() + '.json');
   fs.writeFileSync(

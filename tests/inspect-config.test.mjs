@@ -20,7 +20,7 @@ describe('inspect-config: needs-playwright detection', () => {
   });
 
   it('false for all-ApiCheck kinds', () => {
-    assert.equal(hasPlaywrightKinds(['uptime-ssl', 'redirect', 'dotnet-health', 'xpath']), false);
+    assert.equal(hasPlaywrightKinds(['uptime-ssl', 'redirect', 'xpath']), false);
   });
 
   it('true when gdpr is present', () => {

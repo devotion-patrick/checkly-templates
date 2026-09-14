@@ -18,6 +18,7 @@ const EXPECTED_KINDS = [
   'restricted-admin',
   'custom-playwright',
   'custom-multistep',
+  'security-headers',
 ];
 
 describe('registry: shape', () => {
@@ -38,13 +39,13 @@ describe('registry: shape', () => {
     }
   });
 
-  it('isPlaywright is set on the six Playwright kinds and nothing else', () => {
+  it('isPlaywright is set on the eight Playwright kinds and nothing else', () => {
     const pw = MODULES.filter((m) => m.isPlaywright === true).map((m) => m.kind).sort();
     assert.deepEqual(
       pw,
       [
-        'custom-multistep', 'custom-playwright', 'gdpr', 'launch-readiness',
-        'restricted-admin', 'xpath-spa',
+        'custom-multistep', 'custom-playwright', 'dotnet-health', 'gdpr',
+        'launch-readiness', 'restricted-admin', 'security-headers', 'xpath-spa',
       ],
     );
   });
@@ -115,8 +116,8 @@ describe('hasPlaywrightKinds', () => {
     assert.equal(hasPlaywrightKinds(['xpath-spa']), true);
   });
 
-  it('returns false for an ApiCheck-only list', () => {
-    assert.equal(hasPlaywrightKinds(['uptime-ssl', 'redirect', 'dotnet-health', 'xpath']), false);
+  it('returns false for a non-Playwright list', () => {
+    assert.equal(hasPlaywrightKinds(['uptime-ssl', 'redirect', 'xpath']), false);
   });
 
   it('returns false for an empty list', () => {

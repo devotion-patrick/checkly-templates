@@ -18,6 +18,7 @@
 //     Error at the end. No first-fail short-circuit — multi-issue
 //     audits should report the whole punch list.
 
+import fs from 'node:fs';
 import { test, type APIRequestContext, type Request, type Response } from '@playwright/test';
 
 declare const process: { env: Record<string, string | undefined> };
@@ -178,6 +179,18 @@ test('launch readiness', async ({ page, request }) => {
           findings.map((f) => `  - ${f}`).join('\n') +
           warningsBlock,
       );
+    }
+
+    // A warning with no findings is a real signal, not nothing -- it used
+    // to be visible only in this console log. Checkly has no notion of
+    // assertion-level severity (a run either fails or it doesn't), except
+    // for this one convention: a `degraded.json` file left in the working
+    // directory marks the run Degraded rather than Up, as long as nothing
+    // else failed. Confirmed against a live account (2026-09-14): this
+    // check type's runtime honours a hand-written write exactly the same
+    // as the official @checkly/playwright-helpers package would.
+    if (warnings.length > 0) {
+      fs.writeFileSync('degraded.json', JSON.stringify({ messages: warnings }));
     }
   };
 

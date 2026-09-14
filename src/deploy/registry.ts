@@ -9,6 +9,7 @@ import { customApiModule } from '@checkly-templates/custom-api';
 import { restrictedAdminModule } from '@checkly-templates/restricted-admin';
 import { customPlaywrightModule } from '@checkly-templates/custom-playwright';
 import { customMultistepModule } from '@checkly-templates/custom-multistep';
+import { securityHeadersModule } from '@checkly-templates/security-headers';
 import type { KindModule } from './types.ts';
 
 // Order here drives the order entries appear in `$defs.entryKinds.oneOf`
@@ -29,6 +30,7 @@ export const MODULES: ReadonlyArray<KindModule<any>> = [
   restrictedAdminModule,
   customPlaywrightModule,
   customMultistepModule,
+  securityHeadersModule,
 ];
 
 export const REGISTRY: Readonly<Record<string, KindModule<any>>> = Object.freeze(

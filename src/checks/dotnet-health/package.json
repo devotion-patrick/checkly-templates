@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Checkly ApiCheck: ASP.NET Core /health endpoint reports overall + per-component Healthy status.",
+  "description": "Checkly MultiStepCheck: ASP.NET Core /health endpoint reports overall + per-component Healthy status; a degraded component degrades rather than fails the check.",
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",
@@ -11,6 +11,7 @@
     "./factory": "./factory.ts"
   },
   "peerDependencies": {
+    "@playwright/test": "^1.60.0",
     "checkly": "^7.15.0"
   }
 }

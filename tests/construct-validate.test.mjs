@@ -22,6 +22,20 @@ const { ConstructDiagnostics } = await import(
   ).href
 );
 
+// A MultiStepCheck's own validate() calls Session.getRuntime(), which
+// throws unless an account default runtime was fetched from a live
+// Checkly account first -- something this offline suite has no access
+// to. Session.getRuntime() only throws when the *id* is unset, not when
+// the looked-up runtime itself is; setting a default id with no matching
+// entry in availableRuntimes is enough to make the lookup return
+// undefined instead, which validate() treats as "nothing to check
+// further" rather than an error.
+const { Session } = await import(
+  pathToFileURL(path.join(repoRoot, 'node_modules', 'checkly', 'dist', 'constructs', 'project.js')).href
+);
+Session.defaultRuntimeId = 'offline-test-stub';
+Session.availableRuntimes = {};
+
 async function validateConstruct(construct) {
   const diag = new ConstructDiagnostics(construct);
   await construct.validate(diag);
@@ -125,6 +139,17 @@ const KINDS = [
       expectedAccess: 'gated',
       smoke: true,
       monitor: false,
+    },
+  },
+  {
+    kind: 'security-headers',
+    entry: {
+      kind: 'security-headers',
+      logicalId: 'cv-security-headers',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
     },
   },
 ];
