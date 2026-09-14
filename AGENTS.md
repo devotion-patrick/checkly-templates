@@ -57,3 +57,7 @@ _(none — see `./plans/archived/` for history.)_
 ## Repo-specific conventions
 
 (Beyond planning - filled in as the repo matures. For now, see the active plan above for architecture, tag conventions, kind module shape, and pipeline-template contracts.)
+
+When the workspace is the **Client Portal** checkout (this file is applied from `vendor/checkly-templates/`), follow the repo-root [AGENTS.md](../../AGENTS.md): docs and Storybook stay in lockstep; chrome labels are **Portfolio** and **Hosting**, not Estate.
+
+Inside this vendor folder itself: architecture, tag conventions, kind module shape, and pipeline-template contracts stay in the checkly-templates plans.
