@@ -20,7 +20,14 @@ export const KIND = 'uptime-ssl' as const;
 // code assertions, no script), so `securityHeaders` moved out to its own
 // `security-headers` kind, which still needs a scriptable runtime to
 // report Degraded.
-export const KIND_VERSION = '3.0.0';
+//
+// Bumped to 3.1.0: `followRedirects` became a setting rather than a
+// hardcoded false, and it defaults to true. An uptime check answers "can
+// a visitor reach this site", and a visitor follows the redirect -- a
+// host answering 301 to its https or www form is reachable, not down.
+// Redeploying an existing check moves it onto the new default, which is
+// the intended correction rather than a side effect.
+export const KIND_VERSION = '3.1.0';
 
 export interface UptimeSslEntry extends CommonEntryFields {
   kind: typeof KIND;
@@ -28,6 +35,8 @@ export interface UptimeSslEntry extends CommonEntryFields {
   sslCertificateExpiryThresholdDays?: number;
   // Acceptable success status range. Default: 200-299.
   successStatusRange?: { min: number; max: number };
+  // Whether to follow redirects before asserting. Default true.
+  followRedirects?: boolean;
 }
 
 export const uptimeSslSchemaFragment = {
@@ -53,6 +62,14 @@ export const uptimeSslSchemaFragment = {
         max: { type: 'integer', minimum: 100, maximum: 599 },
       },
       description: 'Inclusive status-code range counted as success. Defaults to 200-299.',
+    },
+    followRedirects: {
+      type: 'boolean',
+      default: true,
+      description:
+        'Follow redirects before asserting the status code. Defaults to true, because a visitor '
+        + 'follows them too: a host answering 301 to its https or www form is reachable. Turn it '
+        + 'off to assert on the redirect response itself, though the redirect kind is built for that.',
     },
   },
   allOf: [smokeOrMonitorConstraint],

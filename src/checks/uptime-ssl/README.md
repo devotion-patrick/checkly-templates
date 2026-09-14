@@ -26,17 +26,24 @@ script), so it cannot itself report anything softer than pass/fail.
 | ---------------------------------- | -------- | -------------------------------------------------------------- |
 | `sslCertificateExpiryThresholdDays`| no       | Days before expiry to start alerting. Default `30`             |
 | `successStatusRange`               | no       | `{ min, max }` inclusive. Default `{ "min": 200, "max": 299 }` |
+| `followRedirects`                  | no       | Follow redirects before asserting. Default `true`              |
 
 Plus the common entry fields. The check's SSL domain is derived from
 the URL hostname automatically.
 
 ## Severity
 
-`followRedirects` is off, so a redirect response's own status code
-(3xx) falls outside `successStatusRange` and fails the assertion
+A status code outside `successStatusRange` fails the assertion
 directly — there is no script to inspect the response body or headers
-any other way. A status code outside `successStatusRange` fails for
-the same reason.
+any other way.
+
+`followRedirects` is on by default, because this check answers "can a
+visitor reach this site" and a visitor follows redirects: a host
+answering 301 to its https or www form is reachable, not down. Turn it
+off to assert on the redirect response itself, in which case its 3xx
+status falls outside `successStatusRange` and fails — though the
+`redirect` kind is purpose-built for that and checks the destination
+too.
 
 ## Default schedule
 

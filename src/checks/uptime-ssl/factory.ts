@@ -47,12 +47,13 @@ export function factory(entry: UptimeSslEntry, ctx: ProjectContext): UrlMonitor 
     tags,
     request: {
       url: entry.url,
-      // Off, deliberately: a redirect used to be resolved silently and
-      // judged only on the destination's status. A URL monitor has no
-      // script to inspect the response itself, so this is what makes a
-      // redirect visible at all -- it lands outside successStatusRange
-      // and the status-code assertion below fails on it directly.
-      followRedirects: false,
+      // On by default: this check answers "can a visitor reach this
+      // site", and a visitor follows redirects -- a host answering 301 to
+      // its https or www form is reachable, not down. Turning it off
+      // makes the redirect itself the thing asserted on, since its status
+      // then lands outside successStatusRange and fails the assertion
+      // below; the `redirect` kind is the purpose-built way to do that.
+      followRedirects: entry.followRedirects ?? true,
       // A range expressed as two exclusive bounds: UrlAssertionBuilder's
       // statusCode() exposes greaterThan/lessThan (strict), the same as
       // ApiCheck's AssertionBuilder.

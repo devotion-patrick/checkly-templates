@@ -224,6 +224,11 @@
                   }
                 },
                 "description": "Inclusive status-code range counted as success. Defaults to 200-299."
+              },
+              "followRedirects": {
+                "type": "boolean",
+                "default": true,
+                "description": "Follow redirects before asserting the status code. Defaults to true, because a visitor follows them too: a host answering 301 to its https or www form is reachable. Turn it off to assert on the redirect response itself, though the redirect kind is built for that."
               }
             },
             "allOf": [

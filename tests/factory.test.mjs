@@ -24,7 +24,7 @@ describe('uptime-ssl factory', () => {
     assert.equal(c.request.url, 'https://example.com');
   });
 
-  it('forces followRedirects=false so a redirect fails the status-code assertion directly', () => {
+  it('follows redirects by default, because a visitor reaching the site does too', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',
       logicalId: 'u2',
@@ -32,6 +32,19 @@ describe('uptime-ssl factory', () => {
       url: 'https://example.com',
       smoke: false,
       monitor: true,
+    });
+    assert.equal(c.request.followRedirects, true);
+  });
+
+  it('honours followRedirects=false, so the redirect itself fails the status-code assertion', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'u2-no-follow',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+      followRedirects: false,
     });
     assert.equal(c.request.followRedirects, false);
   });
