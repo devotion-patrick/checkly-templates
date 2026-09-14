@@ -9,7 +9,13 @@ export const KIND = 'gdpr' as const;
 // @checkly-templates/shared/tags), so a consumer of this registry (e.g.
 // a UI that pushes checks) can compare a deployed check's tag against
 // this constant to know whether a newer template is available to push.
-export const KIND_VERSION = '1.0.0';
+//
+// Bumped to 1.1.0: the GeoIP lookup called `AbortSignal.timeout`, which is
+// not defined in Checkly's sandbox, so it threw on every run. The catch
+// reported that as a failed lookup and forced `inRestricted: true`, meaning
+// every deployed check of this kind was judging against region UNKNOWN --
+// the strictest answer -- rather than where it actually ran.
+export const KIND_VERSION = '1.1.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type GdprPresetName = 'eu-uk-ca' | 'none';

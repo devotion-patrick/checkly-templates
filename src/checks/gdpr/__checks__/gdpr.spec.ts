@@ -108,9 +108,20 @@ async function detectRegion(params: CheckParams): Promise<{
   }
 
   try {
-    const res = await fetch('https://ipapi.co/json/', {
-      signal: AbortSignal.timeout(5_000),
-    });
+    // **Only when the runtime has it.** Checkly runs this inside a sandbox
+    // where `AbortSignal` is not defined, so `AbortSignal.timeout` threw on
+    // every run and the catch below reported that as a failed GeoIP lookup,
+    // forcing `inRestricted: true`. Every check of this kind had been
+    // evaluating against region UNKNOWN -- the strictest answer rather than
+    // the site's own -- with nothing to say so beyond one console warning.
+    // Confirmed on a live run: "GeoIP lookup failed; defaulting to
+    // inRestricted=true. Error: AbortSignal is not defined".
+    const abortable =
+      typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? { signal: AbortSignal.timeout(5_000) }
+        : {};
+
+    const res = await fetch('https://ipapi.co/json/', abortable);
     if (!res.ok) throw new Error(`ipapi returned ${res.status}`);
     const data = (await res.json()) as { country_code?: string; region_code?: string };
     const country = (data.country_code ?? '').toUpperCase();
