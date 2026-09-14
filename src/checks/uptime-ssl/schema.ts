@@ -27,7 +27,12 @@ export const KIND = 'uptime-ssl' as const;
 // host answering 301 to its https or www form is reachable, not down.
 // Redeploying an existing check moves it onto the new default, which is
 // the intended correction rather than a side effect.
-export const KIND_VERSION = '3.1.0';
+//
+// Bumped to 3.2.0: `shouldFail` is exposed, for an address whose correct
+// answer is an error status. Checkly counts a 4xx/5xx as a failed request
+// regardless of what the assertions say, so a `successStatusRange` in the
+// error range is not enough on its own -- the two have to be set together.
+export const KIND_VERSION = '3.2.0';
 
 export interface UptimeSslEntry extends CommonEntryFields {
   kind: typeof KIND;
@@ -37,6 +42,9 @@ export interface UptimeSslEntry extends CommonEntryFields {
   successStatusRange?: { min: number; max: number };
   // Whether to follow redirects before asserting. Default true.
   followRedirects?: boolean;
+  // Invert the outcome, for an address expected to answer with an error
+  // status. Set together with a successStatusRange naming that status.
+  shouldFail?: boolean;
 }
 
 export const uptimeSslSchemaFragment = {
@@ -62,6 +70,16 @@ export const uptimeSslSchemaFragment = {
         max: { type: 'integer', minimum: 100, maximum: 599 },
       },
       description: 'Inclusive status-code range counted as success. Defaults to 200-299.',
+    },
+    shouldFail: {
+      type: 'boolean',
+      default: false,
+      description:
+        'Invert the outcome, for an address whose correct answer is an error status (an admin '
+        + 'endpoint that must answer 403, say). Checkly counts a 4xx or 5xx as a failed request '
+        + 'whatever the assertions say, so this has to be set together with a successStatusRange '
+        + 'naming the expected status: the range alone leaves the check failing, and this alone '
+        + 'inverts a healthy check into a failing one.',
     },
     followRedirects: {
       type: 'boolean',

@@ -36,6 +36,38 @@ describe('uptime-ssl factory', () => {
     assert.equal(c.request.followRedirects, true);
   });
 
+  it('does not invert the outcome unless asked', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'u-shouldfail-default',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+    });
+    assert.equal(c.shouldFail, false);
+  });
+
+  // Checkly counts a 4xx/5xx as a failed request whatever the assertions say,
+  // so an address whose correct answer is an error status needs both this and
+  // a successStatusRange naming that status. Verified against a live URL
+  // monitor answering 403: checkly/constructs' own comment claims shouldFail
+  // applies to API checks only, and that is wrong.
+  it('inverts the outcome when shouldFail is set, for an address expected to error', () => {
+    const c = tryFactory('uptime-ssl', {
+      kind: 'uptime-ssl',
+      logicalId: 'u-shouldfail-on',
+      env: 'PROD',
+      url: 'https://example.com',
+      smoke: false,
+      monitor: true,
+      shouldFail: true,
+      successStatusRange: { min: 403, max: 403 },
+    });
+    assert.equal(c.shouldFail, true);
+    assert.equal(c.synthesize().shouldFail, true);
+  });
+
   it('honours followRedirects=false, so the redirect itself fails the status-code assertion', () => {
     const c = tryFactory('uptime-ssl', {
       kind: 'uptime-ssl',

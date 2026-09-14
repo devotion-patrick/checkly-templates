@@ -44,6 +44,13 @@ export function factory(entry: UptimeSslEntry, ctx: ProjectContext): UrlMonitor 
     locations: locations as never[],
     activated: entry.activated ?? true,
     retryStrategy: RetryStrategyBuilder.noRetries(),
+    // Inverts the outcome, for an address whose correct answer is an
+    // error status. Checkly counts a 4xx/5xx as a failed request whatever
+    // the assertions say, so a successStatusRange in the error range does
+    // not pass on its own -- the two go together. Confirmed against a
+    // live URL monitor answering 403 (checkly/constructs' own comment
+    // says this applies to API checks only; it does not).
+    shouldFail: entry.shouldFail ?? false,
     tags,
     request: {
       url: entry.url,

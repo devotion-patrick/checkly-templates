@@ -225,6 +225,11 @@
                 },
                 "description": "Inclusive status-code range counted as success. Defaults to 200-299."
               },
+              "shouldFail": {
+                "type": "boolean",
+                "default": false,
+                "description": "Invert the outcome, for an address whose correct answer is an error status (an admin endpoint that must answer 403, say). Checkly counts a 4xx or 5xx as a failed request whatever the assertions say, so this has to be set together with a successStatusRange naming the expected status: the range alone leaves the check failing, and this alone inverts a healthy check into a failing one."
+              },
               "followRedirects": {
                 "type": "boolean",
                 "default": true,
