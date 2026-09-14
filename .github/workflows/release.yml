@@ -43,3 +43,4 @@ jobs:
           body_path: release-notes.md
           files: |
             src/deploy/schema.json
+            src/deploy/manifest.json

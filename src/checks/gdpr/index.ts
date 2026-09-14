@@ -5,6 +5,7 @@ import { gdprSchemaFragment, KIND, KIND_VERSION, type GdprEntry } from './schema
 export const gdprModule: KindModule<GdprEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "PLAYWRIGHT",
   schemaFragment: gdprSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

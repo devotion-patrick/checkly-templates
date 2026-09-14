@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, customMultistepSchemaFragment, type CustomMultistep
 export const customMultistepModule: KindModule<CustomMultistepEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "MULTI_STEP",
   schemaFragment: customMultistepSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

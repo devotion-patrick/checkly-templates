@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, restrictedAdminSchemaFragment, type RestrictedAdmin
 export const restrictedAdminModule: KindModule<RestrictedAdminEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "PLAYWRIGHT",
   schemaFragment: restrictedAdminSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

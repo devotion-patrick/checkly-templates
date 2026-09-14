@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, uptimeSslSchemaFragment, type UptimeSslEntry } from
 export const uptimeSslModule: KindModule<UptimeSslEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "URL",
   schemaFragment: uptimeSslSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

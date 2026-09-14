@@ -16,6 +16,8 @@ export interface ConsumerConfig {
   checks: CommonEntryFields[];
 }
 
+export type CheckType = 'URL' | 'API' | 'BROWSER' | 'MULTI_STEP' | 'PLAYWRIGHT';
+
 export interface KindDefaults {
   frequency?: FrequencyName;
   locations?: string[];
@@ -31,6 +33,15 @@ export interface KindModule<E extends CommonEntryFields = CommonEntryFields> {
   // check first, and compare it against the tag on an already-deployed
   // one to decide whether a newer template is available to push.
   version: string;
+  // The Checkly checkType this kind's factory produces, spelled the way
+  // Checkly's own API reports it. Declared rather than read back off the
+  // construct, because synthesizing one needs a live Session. A consumer
+  // that deploys checks itself rather than through `checkly deploy` (the
+  // Client Portal calls Checkly's REST API directly) needs a kind's
+  // construct without running the factory: to build the right payload,
+  // and to notice a deployed check still running the construct an older
+  // template version used.
+  checkType: CheckType;
   schemaFragment: JsonSchemaFragment;
   defaults: KindDefaults;
   // Side-effect: instantiates a Checkly construct that registers itself

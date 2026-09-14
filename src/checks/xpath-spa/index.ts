@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, xpathSpaSchemaFragment, type XpathSpaEntry } from '
 export const xpathSpaModule: KindModule<XpathSpaEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "PLAYWRIGHT",
   schemaFragment: xpathSpaSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

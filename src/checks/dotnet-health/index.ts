@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, dotnetHealthSchemaFragment, type DotnetHealthEntry 
 export const dotnetHealthModule: KindModule<DotnetHealthEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "MULTI_STEP",
   schemaFragment: dotnetHealthSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

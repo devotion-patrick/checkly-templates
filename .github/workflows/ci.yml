@@ -46,6 +46,12 @@ jobs:
       - name: Verify src/deploy/schema.json is up-to-date
         run: node ./src/deploy/build-schema.mjs --check
 
+      # Consumers that deploy checks themselves, rather than through
+      # `checkly deploy`, read this instead of restating each kind's
+      # version, checkType and default frequency in their own code.
+      - name: Verify src/deploy/manifest.json is up-to-date
+        run: node ./src/deploy/build-manifest.mjs --check
+
       - name: Validate examples/consumer-checks.json end-to-end
         env:
           CHECKLY_TEMPLATES_CONFIG: ${{ github.workspace }}/examples/consumer-checks.json

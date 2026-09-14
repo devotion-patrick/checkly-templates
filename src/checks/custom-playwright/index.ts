@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, customPlaywrightSchemaFragment, type CustomPlaywrig
 export const customPlaywrightModule: KindModule<CustomPlaywrightEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "BROWSER",
   schemaFragment: customPlaywrightSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

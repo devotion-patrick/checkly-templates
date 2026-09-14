@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, securityHeadersSchemaFragment, type SecurityHeaders
 export const securityHeadersModule: KindModule<SecurityHeadersEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "MULTI_STEP",
   schemaFragment: securityHeadersSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

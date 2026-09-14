@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, customApiSchemaFragment, type CustomApiEntry } from
 export const customApiModule: KindModule<CustomApiEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "API",
   schemaFragment: customApiSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

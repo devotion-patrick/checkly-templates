@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, redirectSchemaFragment, type RedirectEntry } from '
 export const redirectModule: KindModule<RedirectEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "API",
   schemaFragment: redirectSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

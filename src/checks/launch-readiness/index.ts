@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, launchReadinessSchemaFragment, type LaunchReadiness
 export const launchReadinessModule: KindModule<LaunchReadinessEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "PLAYWRIGHT",
   schemaFragment: launchReadinessSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,

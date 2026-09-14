@@ -5,6 +5,7 @@ import { KIND, KIND_VERSION, xpathSchemaFragment, type XpathEntry } from './sche
 export const xpathModule: KindModule<XpathEntry> = {
   kind: KIND,
   version: KIND_VERSION,
+  checkType: "API",
   schemaFragment: xpathSchemaFragment as unknown as Record<string, unknown>,
   defaults,
   factory,
