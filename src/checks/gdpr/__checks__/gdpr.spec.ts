@@ -21,6 +21,7 @@
 //
 //   GDPR_CHECK_LEVEL           — report | standard | strict. Default standard.
 //                                A site's own checkLevel wins.
+//   CHECK_LOCATION             — Checkly location, set per check by the factory.
 //   GDPR_REGION                — ISO code (e.g. DE, US-CA). Skips the GeoIP lookup.
 //   GDPR_GEOIP_API_KEY         — ipapi.co key, avoids the shared-IP 429.
 //   CHECK_IN_RESTRICTED_REGION — true | false, local debugging.

@@ -47,17 +47,34 @@ Plus the common entry fields: `logicalId`, `env`, `url`, `tags?`,
 Compliance mode decides *where* to enforce; check level decides *what*
 fails.
 
-Region detection waterfall (`gdpr/__checks__/grading.ts`), run once per
-Playwright worker rather than per test:
+### One check per location
+
+Each entry becomes one Checkly check per location, with logicalId
+`<logicalId>-<location>` and the location appended to the name. Each check
+carries `CHECK_LOCATION`, so it knows where it ran without asking an IP
+service. Checkly's Playwright checks don't expose the run location
+themselves, and a single check run in parallel shares one env across
+locations.
+
+The suffix is applied even for one location, so adding a location later
+doesn't rename the existing check.
+
+A location in `restrictedChecklyLocations` is restricted; any other is
+not. The default list covers the EU, London and `us-west-1`
+(N. California). To drop California, remove both `US-CA` from
+`restrictedRegions` and `us-west-1` from `restrictedChecklyLocations`.
+
+### Region detection
+
+Waterfall (`gdpr/__checks__/grading.ts`), run once per Playwright worker:
 1. `CHECK_IN_RESTRICTED_REGION=true|false` env override (local dev).
-2. `GDPR_REGION`, an ISO code such as `DE` or `US-CA`. Skips the lookup,
-   so runs are repeatable.
-3. `CHECKLY_REGION`, when the Checkly runtime exposes it.
-4. IP lookup via `ipapi.co`. Checkly's shared IPs hit its free-tier limit
-   (429), so set `GDPR_GEOIP_API_KEY` as a secret on the Checkly account.
-5. **Fail-safe fallback.** If all of the above fail, the run is treated as
-   restricted and the output says why, e.g.
-   `UNKNOWN via fallback (ipapi.co returned 429, rate limited: ...)`.
+2. `CHECK_LOCATION`, set per check by the factory. Covers every deployed check.
+3. `GDPR_REGION`, an ISO code such as `DE` or `US-CA`, for local runs.
+4. `CHECKLY_REGION`, if a Checkly runtime ever exposes it.
+5. IP lookup via `ipapi.co`. Local runs only in practice. Its free tier
+   rate-limits shared IPs (429); `GDPR_GEOIP_API_KEY` takes a paid key.
+6. **Fail-safe fallback.** If all of the above fail, the run is treated as
+   restricted and the output says why.
 
 ## What the check actually does
 
@@ -150,7 +167,7 @@ it was detected, then each finding with its grade:
 
 ```
   check level:           standard (default)
-  region:                UNKNOWN via fallback (ipapi.co returned 429, rate limited: ...), treated as restricted
+  region:                eu-west-1 via CHECK_LOCATION, restricted
   enforcing:             yes
   findings (2):
     [WARN] google-request-denied-cookieless: google-analytics.com, gcs=G100: Consent Mode advanced cookieless ping. ...
@@ -182,6 +199,7 @@ restricted one enforces.
 | `CHECK_TARGET_URL`   | Absolute URL to test                                                   |
 | `CHECK_KIND`         | Must equal `"gdpr"` for this spec to enforce                           |
 | `CHECK_PARAMS`       | JSON: complianceMode, checkLevel (if set) + resolved rules             |
+| `CHECK_LOCATION`     | Checkly location this check runs from. Set by the factory              |
 | `CHECK_IN_RESTRICTED_REGION` | Optional dev override (`true` / `false`)                       |
 | `GDPR_CHECK_LEVEL`   | `report`, `standard` (default) or `strict`. A site's `checkLevel` wins |
 | `GDPR_REGION`        | ISO region code. Skips the GeoIP lookup                                |

@@ -82,6 +82,11 @@ export function tryFactory(kind, entry, ctx = baseContext) {
   return mod.factory(entry, ctx);
 }
 
+// gdpr returns one construct per location; every other kind returns one.
+export function constructsOf(result) {
+  return Array.isArray(result) ? result : [result];
+}
+
 // Convenience: build a full consumer-config object around a single entry.
 export function configWith(entries, project = baseProject) {
   return { project, checks: Array.isArray(entries) ? entries : [entries] };

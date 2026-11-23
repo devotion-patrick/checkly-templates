@@ -7,7 +7,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { tryFactory, baseContext, REGISTRY } from './helpers.mjs';
+import { constructsOf, tryFactory, baseContext, REGISTRY } from './helpers.mjs';
 
 const ctx = baseContext;
 
@@ -568,7 +568,7 @@ describe('xpath-spa factory: env-var contract', () => {
 
 describe('gdpr factory', () => {
   it('serialises the resolved EU/UK/CA preset rules into CHECK_PARAMS', () => {
-    const c = tryFactory('gdpr', {
+    const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'g1',
       env: 'PROD',
@@ -585,7 +585,7 @@ describe('gdpr factory', () => {
   });
 
   it('applies overrides.trackingDomains.add', () => {
-    const c = tryFactory('gdpr', {
+    const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'g2',
       env: 'PROD',
@@ -600,7 +600,7 @@ describe('gdpr factory', () => {
   });
 
   it('applies overrides.cookieBlocklist.remove', () => {
-    const c = tryFactory('gdpr', {
+    const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'g3',
       env: 'PROD',
@@ -623,9 +623,45 @@ describe('gdpr factory', () => {
       smoke: true,
       monitor: false,
     };
-    const paramsOf = (c) => JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    const paramsOf = ([c]) => JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
     assert.equal(paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g5', checkLevel: 'strict' })).checkLevel, 'strict');
     assert.equal('checkLevel' in paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g6' })), false);
+  });
+
+  it('creates one check per location with CHECK_LOCATION set', () => {
+    const cs = tryFactory(
+      'gdpr',
+      {
+        kind: 'gdpr',
+        logicalId: 'g-fan',
+        env: 'PROD',
+        url: 'https://example.com',
+        complianceMode: 'targeted',
+        smoke: true,
+        monitor: false,
+      },
+      { ...baseContext, defaultLocations: ['eu-west-1', 'ap-southeast-2'] },
+    );
+    assert.deepEqual(cs.map((c) => c.logicalId), ['g-fan-eu-west-1', 'g-fan-ap-southeast-2']);
+    assert.deepEqual(cs.map((c) => [...c.locations]), [['eu-west-1'], ['ap-southeast-2']]);
+    assert.deepEqual(
+      cs.map((c) => c.environmentVariables.find((v) => v.key === 'CHECK_LOCATION').value),
+      ['eu-west-1', 'ap-southeast-2'],
+    );
+    assert.ok(cs[0].name.endsWith(' (eu-west-1)'));
+  });
+
+  it('suffixes the logicalId even for a single location', () => {
+    const [c] = tryFactory('gdpr', {
+      kind: 'gdpr',
+      logicalId: 'g-one',
+      env: 'PROD',
+      url: 'https://example.com',
+      complianceMode: 'targeted',
+      smoke: true,
+      monitor: false,
+    });
+    assert.equal(c.logicalId, `g-one-${baseContext.defaultLocations[0]}`);
   });
 
   it('requires explicit rules when preset is "none"', () => {
@@ -962,7 +998,7 @@ describe('common factory behavior', () => {
 
   for (const { kind, extra } of everyKind) {
     it(`${kind}: per-entry tags get merged with auto-emitted set`, () => {
-      const c = tryFactory(kind, {
+      const constructs = constructsOf(tryFactory(kind, {
         kind,
         logicalId: `t-${kind}`,
         env: 'PROD',
@@ -971,14 +1007,16 @@ describe('common factory behavior', () => {
         smoke: true,
         monitor: false,
         ...extra,
-      });
-      assert.ok(c.tags.includes('extra:tag'));
-      assert.ok(c.tags.includes('another:one'));
-      assert.ok(c.tags.includes('source:checkly-templates'));
+      }));
+      for (const c of constructs) {
+        assert.ok(c.tags.includes('extra:tag'));
+        assert.ok(c.tags.includes('another:one'));
+        assert.ok(c.tags.includes('source:checkly-templates'));
+      }
     });
 
     it(`${kind}: per-entry locations override project default`, () => {
-      const c = tryFactory(
+      const constructs = constructsOf(tryFactory(
         kind,
         {
           kind,
@@ -991,8 +1029,8 @@ describe('common factory behavior', () => {
           ...extra,
         },
         { ...ctx, defaultLocations: ['eu-central-1'] },
-      );
-      assert.deepEqual([...c.locations].sort(), ['ap-southeast-1', 'us-east-1']);
+      ));
+      assert.deepEqual(constructs.flatMap((c) => [...c.locations]).sort(), ['ap-southeast-1', 'us-east-1']);
     });
   }
 });

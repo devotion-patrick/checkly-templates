@@ -7,7 +7,11 @@
 // Reads one JSON document on stdin and writes one on stdout:
 //
 //   in   { project: ProjectBlock, defaultFrequency?, defaultLocations?, entries: Entry[] }
-//   out  { payloads: [{ logicalId, kind, payload }] }
+//   out  { payloads: [{ logicalId, entryLogicalId, kind, payload }] }
+//
+// One payload per construct, not per entry: gdpr creates one check per
+// location, logicalId `<entryLogicalId>-<location>`. Every other kind's
+// logicalId equals its entryLogicalId.
 //   err  { error: string, logicalId?: string }   (exit 1)
 //
 // **Why this exists.** The Client Portal deploys checks by calling Checkly's
@@ -100,11 +104,15 @@ for (const entry of input.entries) {
   if (!module) fail(`Unknown kind "${entry.kind}".`, entry.logicalId);
 
   try {
-    payloads.push({
-      logicalId: entry.logicalId,
-      kind: entry.kind,
-      payload: module.factory(entry, ctx).synthesize(),
-    });
+    const result = module.factory(entry, ctx);
+    for (const construct of Array.isArray(result) ? result : [result]) {
+      payloads.push({
+        logicalId: construct.logicalId,
+        entryLogicalId: entry.logicalId,
+        kind: entry.kind,
+        payload: construct.synthesize(),
+      });
+    }
   } catch (error) {
     fail(error.message, entry.logicalId);
   }

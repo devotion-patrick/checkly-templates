@@ -358,7 +358,7 @@ export interface RegionInfo {
   inRestricted: boolean;
   /** Country, country-subdivision or Checkly location. UNKNOWN on fallback. */
   region: string;
-  source: 'override' | 'GDPR_REGION' | 'checkly-env' | 'ipapi' | 'fallback';
+  source: 'override' | 'CHECK_LOCATION' | 'GDPR_REGION' | 'checkly-env' | 'ipapi' | 'fallback';
   /** Why the fallback was used. */
   reason?: string;
 }
@@ -383,7 +383,7 @@ type FetchLike = (url: string, init?: { signal?: AbortSignal }) => Promise<{
 export const GEOIP_URL = 'https://ipapi.co/json/';
 
 /**
- * Waterfall: CHECK_IN_RESTRICTED_REGION, GDPR_REGION, CHECKLY_REGION, ipapi.co.
+ * Waterfall: CHECK_IN_RESTRICTED_REGION, CHECK_LOCATION, GDPR_REGION, CHECKLY_REGION, ipapi.co.
  * Anything unresolved falls back to restricted.
  */
 export async function detectRegion(
@@ -394,6 +394,16 @@ export async function detectRegion(
   const override = env.CHECK_IN_RESTRICTED_REGION?.toLowerCase();
   if (override === 'true' || override === 'false') {
     return { inRestricted: override === 'true', region: 'OVERRIDE', source: 'override' };
+  }
+
+  // Set per check by the factory; Checkly doesn't expose the run location itself.
+  const location = env.CHECK_LOCATION?.trim();
+  if (location) {
+    return {
+      inRestricted: rules.restrictedChecklyLocations.includes(location),
+      region: location,
+      source: 'CHECK_LOCATION',
+    };
   }
 
   const pinned = env.GDPR_REGION?.trim();

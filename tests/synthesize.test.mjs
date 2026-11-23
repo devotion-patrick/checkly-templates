@@ -93,7 +93,7 @@ describe('synthesize: PlaywrightCheck kinds carry the env-var contract', () => {
   });
 
   it('gdpr env vars survive synthesize', () => {
-    const c = tryFactory('gdpr', {
+    const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'syn-gdpr',
       env: 'PROD',

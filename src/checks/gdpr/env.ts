@@ -83,9 +83,11 @@ export interface CheckEnv {
   CHECK_TARGET_URL: string;
   CHECK_KIND: string;
   CHECK_PARAMS: string;
+  /** Checkly location the check is pinned to. Absent for local runs. */
+  CHECK_LOCATION?: string;
 }
 
-export function buildCheckEnv(entry: GdprEntry): CheckEnv {
+export function buildCheckEnv(entry: GdprEntry, location?: string): CheckEnv {
   const rules = resolveRules(entry);
   return {
     CHECK_TARGET_URL: entry.url,
@@ -96,5 +98,6 @@ export function buildCheckEnv(entry: GdprEntry): CheckEnv {
       ...(entry.checkLevel ? { checkLevel: entry.checkLevel } : {}),
       ...rules,
     }),
+    ...(location ? { CHECK_LOCATION: location } : {}),
   };
 }

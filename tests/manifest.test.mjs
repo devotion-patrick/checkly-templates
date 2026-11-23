@@ -15,7 +15,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { MODULES, REGISTRY, repoRoot, tryFactory } from './helpers.mjs';
+import { MODULES, REGISTRY, constructsOf, repoRoot, tryFactory } from './helpers.mjs';
 
 const manifest = JSON.parse(
   fs.readFileSync(path.join(repoRoot, 'src/deploy/manifest.json'), 'utf8'),
@@ -59,7 +59,7 @@ describe('manifest: agrees with the registry', () => {
 describe('manifest: declared checkType is the one the factory produces', () => {
   for (const kind of Object.keys(ENTRY_EXTRAS)) {
     it(`${kind}: synthesize() emits the declared checkType`, () => {
-      const construct = tryFactory(kind, {
+      const [construct] = constructsOf(tryFactory(kind, {
         kind,
         logicalId: `manifest-${kind}`,
         env: 'PROD',
@@ -67,7 +67,7 @@ describe('manifest: declared checkType is the one the factory produces', () => {
         smoke: true,
         monitor: false,
         ...ENTRY_EXTRAS[kind],
-      });
+      }));
 
       assert.equal(construct.synthesize().checkType, REGISTRY[kind].checkType);
     });
