@@ -90,6 +90,11 @@ export function buildCheckEnv(entry: GdprEntry): CheckEnv {
   return {
     CHECK_TARGET_URL: entry.url,
     CHECK_KIND: KIND,
-    CHECK_PARAMS: JSON.stringify({ complianceMode: entry.complianceMode, ...rules }),
+    // checkLevel only when set, so GDPR_CHECK_LEVEL applies otherwise.
+    CHECK_PARAMS: JSON.stringify({
+      complianceMode: entry.complianceMode,
+      ...(entry.checkLevel ? { checkLevel: entry.checkLevel } : {}),
+      ...rules,
+    }),
   };
 }

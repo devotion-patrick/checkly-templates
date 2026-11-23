@@ -55,6 +55,8 @@ jobs:
       - name: Validate examples/consumer-checks.json end-to-end
         env:
           CHECKLY_TEMPLATES_CONFIG: ${{ github.workspace }}/examples/consumer-checks.json
+          # The example's dotnet-health entry reads HEALTH_KEY; same fixture value as tests/cli.test.mjs.
+          HEALTH_KEY: ci-test-fixture-value
         run: node ./scripts/try-config.mjs --mode validate
 
       - name: checkly test --list (compile check, no network)

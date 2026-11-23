@@ -24,9 +24,16 @@ export const KIND = 'gdpr' as const;
 // Bumped to 1.3.0: findings are ranked and grouped worst-first, so an
 // advertising identifier is not reported as the equal of a cookie probe
 // that stores nothing.
-export const KIND_VERSION = '1.3.0';
+//
+// Bumped to 2.0.0: findings are graded INFO / WARN / FAIL against a check
+// level (report, standard, strict), and FAIL now fails the run. 1.2.0's
+// Degraded-for-everything meant a compliance check could not fail CI.
+// Degraded is kept for WARN-only runs, e.g. Consent Mode advanced pings
+// under standard.
+export const KIND_VERSION = '2.0.0';
 
 export type ComplianceMode = 'global' | 'targeted';
+export type CheckLevel = 'report' | 'standard' | 'strict';
 export type GdprPresetName = 'eu-uk-ca' | 'none';
 
 export interface GdprOverrides {
@@ -60,6 +67,7 @@ export interface GdprCustomRules {
 export interface GdprEntry extends CommonEntryFields {
   kind: typeof KIND;
   complianceMode: ComplianceMode;
+  checkLevel?: CheckLevel;
   preset?: GdprPresetName;
   overrides?: GdprOverrides;
   rules?: GdprCustomRules;
@@ -76,6 +84,11 @@ export const gdprSchemaFragment = {
       enum: ['global', 'targeted'],
       description:
         '`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/UK/CA). Out-of-region runs in `targeted` mode log findings but pass.',
+    },
+    checkLevel: {
+      enum: ['report', 'standard', 'strict'],
+      description:
+        'How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced (denied-state cookieless pings) as a warning; `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`.',
     },
     preset: {
       enum: ['eu-uk-ca', 'none'],

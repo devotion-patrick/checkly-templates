@@ -1003,6 +1003,14 @@
                 ],
                 "description": "`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/UK/CA). Out-of-region runs in `targeted` mode log findings but pass."
               },
+              "checkLevel": {
+                "enum": [
+                  "report",
+                  "standard",
+                  "strict"
+                ],
+                "description": "How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced (denied-state cookieless pings) as a warning; `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`."
+              },
               "preset": {
                 "enum": [
                   "eu-uk-ca",

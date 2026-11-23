@@ -614,6 +614,20 @@ describe('gdpr factory', () => {
     assert.equal(params.cookieBlocklist.youtube, undefined);
   });
 
+  it('passes checkLevel through CHECK_PARAMS only when set', () => {
+    const base = {
+      kind: 'gdpr',
+      env: 'PROD',
+      url: 'https://example.com',
+      complianceMode: 'global',
+      smoke: true,
+      monitor: false,
+    };
+    const paramsOf = (c) => JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    assert.equal(paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g5', checkLevel: 'strict' })).checkLevel, 'strict');
+    assert.equal('checkLevel' in paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g6' })), false);
+  });
+
   it('requires explicit rules when preset is "none"', () => {
     assert.throws(() => {
       tryFactory('gdpr', {

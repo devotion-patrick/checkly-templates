@@ -1,0 +1,2 @@
+# Generated JSON is byte-compared by build-schema/build-manifest --check; CRLF on Windows checkout fails it.
+*.json text eol=lf

@@ -15,6 +15,7 @@ plus an explicit `rules` object.
   "env": "PROD",
   "url": "https://www.acme.com",
   "complianceMode": "targeted",
+  "checkLevel": "standard",
   "preset": "eu-uk-ca",
   "overrides": {
     "trackingDomains": { "add": ["custom-tracker.example.com"] },
@@ -26,6 +27,7 @@ plus an explicit `rules` object.
 | Field            | Required | Notes                                                                          |
 | ---------------- | -------- | ------------------------------------------------------------------------------ |
 | `complianceMode` | yes      | `global` enforces everywhere; `targeted` enforces only from restricted regions |
+| `checkLevel`     | no       | `report`, `standard` or `strict`. Overrides `GDPR_CHECK_LEVEL` for this site    |
 | `preset`         | no       | `eu-uk-ca` (default) or `none`. `none` requires `rules`                        |
 | `overrides`      | no       | Surgical add/remove on the preset's lists                                      |
 | `rules`          | no       | Full custom rule set; used only when `preset: "none"`                          |
@@ -35,20 +37,27 @@ Plus the common entry fields: `logicalId`, `env`, `url`, `tags?`,
 
 ## Compliance modes
 
-- **`global`** — fail any tracking before consent, regardless of where
-  the check runs from. Strictest policy.
+- **`global`** — enforce the [check level](#check-levels) regardless of
+  where the check runs from.
 - **`targeted`** — only enforce when the check originates from a
   restricted region (the resolved `restrictedRegions` /
   `restrictedChecklyLocations` from preset + overrides). Runs from
-  unrestricted regions still log findings, but pass.
+  unrestricted regions still grade and log findings, but pass.
 
-Region detection waterfall (`gdpr-check/__checks__/gdpr.spec.ts`):
+Compliance mode decides *where* to enforce; check level decides *what*
+fails.
+
+Region detection waterfall (`gdpr/__checks__/grading.ts`), run once per
+Playwright worker rather than per test:
 1. `CHECK_IN_RESTRICTED_REGION=true|false` env override (local dev).
-2. `CHECKLY_REGION` — exposed by Checkly's Playwright Check runtime.
-3. IP-based geo lookup via `ipapi.co` — slower (~300ms) fallback.
-4. **Fail-safe fallback** — if all of the above fail, the script assumes
-   the run is in a restricted region. Never silently let violations
-   through because a geo provider is down.
+2. `GDPR_REGION`, an ISO code such as `DE` or `US-CA`. Skips the lookup,
+   so runs are repeatable.
+3. `CHECKLY_REGION`, when the Checkly runtime exposes it.
+4. IP lookup via `ipapi.co`. Checkly's shared IPs hit its free-tier limit
+   (429), so set `GDPR_GEOIP_API_KEY` as a secret on the Checkly account.
+5. **Fail-safe fallback.** If all of the above fail, the run is treated as
+   restricted and the output says why, e.g.
+   `UNKNOWN via fallback (ipapi.co returned 429, rate limited: ...)`.
 
 ## What the check actually does
 
@@ -60,28 +69,94 @@ For each run:
 3. Snapshots cookies twice (synchronous Pixel cookies vs async GA
    cookies land at different points) and unions the snapshots.
 4. Classifies cookies against `cookieBlocklist` and outbound requests
-   against `trackingDomains`. GTM is handled separately because it can
-   be compliant when paired with a consent-mode default=denied.
-5. In **enforce** mode (see above), reports the run **Degraded** with a
-   summary of every violation. In observe-only mode (targeted +
-   unrestricted), logs everything and passes.
+   against `trackingDomains`. Google requests are read for their Consent
+   Mode state (`gcs`, then `gcd`). GTM is handled separately because it
+   can be compliant when paired with a consent-mode default=denied.
+5. Grades every finding INFO, WARN or FAIL for the check level, prints
+   them, then asserts once that no finding is FAIL. See
+   [Check levels](#check-levels).
 
-## Severity
+## Check levels
 
-Findings are ranked, worst first, because a flat list put `test_cookie`
-beside a live advertising identifier and made four findings look like
-four equal problems.
+Whether a site passes depends on how strictly the client reads the law,
+which is a client or legal decision. So the check takes a level rather
+than hard-coding one answer.
 
-| Rank | What it means | Categories |
+| Level | Behaviour |
+| --- | --- |
+| `report` | Logs and grades every finding. Never fails |
+| `standard` (default) | Accepts Google Consent Mode v2 "advanced": denied-state cookieless pings are WARN |
+| `strict` | Any tracking request before consent fails, as only Consent Mode "basic" passes |
+
+Set it per environment with `GDPR_CHECK_LEVEL`, or per site with the
+entry's `checkLevel`, which wins. An unknown value stops the run rather
+than quietly falling back.
+
+### Why two levels
+
+In Consent Mode advanced, GTM sets consent to denied by default and GA
+then sends cookieless pings before the visitor chooses. No cookies are
+set, and Google designs it to work this way. Under a strict EU reading
+it is still a risk: EDPB Guidelines 2/2023 on the technical scope of
+ePrivacy Art 5(3) treat pixels and pings that send device data (IP, user
+agent) as in scope even without cookies, and some DPAs (CNIL, Dutch AP)
+take that line. Standard accepts the Google design, strict follows the
+EDPB reading.
+
+### Grading
+
+| Finding before consent | standard | strict | Rule |
+| --- | --- | --- | --- |
+| Non-essential cookie set | FAIL | FAIL | `cookie-before-consent` |
+| Google request, consent denied, no Google cookies | WARN | FAIL | `google-request-denied-cookieless` |
+| Google request, consent denied, Google cookies set anyway | FAIL | FAIL | `google-request-denied-with-cookies` |
+| Google request, consent granted | FAIL | FAIL | `google-request-consent-granted` |
+| Google request, no consent signal | FAIL | FAIL | `google-request-no-consent-signal` |
+| Non-Google tracking request | FAIL | FAIL | `tracking-request-before-consent` |
+| GTM loaded, consent default denied set first | INFO | INFO | `gtm-consent-default-first` |
+| GTM loaded, no consent default before tags fire | FAIL | FAIL | `gtm-no-consent-default` |
+| `test_cookie` probe | INFO | INFO | `probe-cookie-before-consent` |
+
+Consent state on a Google request comes from `gcs` (`G1<ad_storage><analytics_storage>`,
+so `G100` is both denied and `G101` is analytics granted), then `gcd` if
+`gcs` is missing. Neither means no consent signal. Any storage granted
+counts as granted. Google requests are those to `google-analytics.com`,
+`doubleclick.net`, `googlesyndication.com`, `googleadservices.com` and
+`google.com`, when they are in `trackingDomains`.
+
+`test_cookie` is DoubleClick checking whether cookies work. It holds no
+identifier, and the doubleclick.net request that sets it is graded on its
+own, so it is INFO rather than a second FAIL for the same tag.
+
+Cookie findings keep the 1.3.0 rank in their detail (critical for
+advertising identifiers, serious for analytics, moderate for embeds),
+and are listed worst first.
+
+### Outcome
+
+| Findings | Result | Checkly |
 | --- | --- | --- |
-| **CRITICAL** | Cross-site advertising identifier. Follows a person between sites and feeds retargeting, and the class regulators actually act on | `google_ads`, `meta`, `google_doubleclick`, `bing`, `linkedin`, `tiktok`, `pinterest`, plus ad-tech requests |
-| **SERIOUS** | First-party analytics or profiling identifier. A real violation, but it profiles within one site rather than across the web, and several supervisory authorities treat first-party analytics far more leniently | `google_analytics`, `hotjar`, `hubspot`, plus analytics requests |
-| **MODERATE** | Third-party embed or consent-mode weakness. The fix is a setting rather than removing a tag | `youtube`, `google_shared`, GTM without a denied default |
-| **ADVISORY** | Matches a pattern but stores no identifier | `test_cookie` |
+| Any FAIL | `failed` | Failed |
+| WARN, no FAIL | `passed with warnings` | Degraded (via `degraded.json`) |
+| INFO only, or none | `passed` | Passed |
 
-A category added through `overrides` ranks **SERIOUS**: adding one is a
-deliberate act, and the safe reading of "I care about this cookie" is not
-"ignore it".
+Every finding is collected as `{ severity, rule, detail, url }` and the
+run asserts once at the end with `expect(failures).toEqual([])`. In
+`report`, and in targeted mode from an unrestricted region, the assertion
+is skipped and the output says what the result would have been.
+
+The output leads with the level and where it came from, the region and how
+it was detected, then each finding with its grade:
+
+```
+  check level:           standard (default)
+  region:                UNKNOWN via fallback (ipapi.co returned 429, rate limited: ...), treated as restricted
+  enforcing:             yes
+  findings (2):
+    [WARN] google-request-denied-cookieless: google-analytics.com, gcs=G100: Consent Mode advanced cookieless ping. ...
+    [INFO] gtm-consent-default-first: GTM loaded, Consent Mode default=denied set before tags fired
+  result: passed with warnings (0 FAIL, 1 WARN)
+```
 
 ### Why an online scanner may disagree
 
@@ -100,26 +175,17 @@ check resolves its own region (see `restrictedRegions`), so in
 **targeted** mode an unrestricted run is observe-only and passes, while a
 restricted one enforces.
 
-A violation reports **Degraded**, not Down. Cookies set before consent is
-a real compliance problem, but it is not the site being down: it wants
-somebody to schedule a fix, not to wake somebody at three in the morning.
-Reported as a failure it competed for attention with genuine outages,
-which is how a report stops being read.
-
-Mechanically this is the `degraded.json` convention — a file left in the
-working directory marks the run Degraded rather than Up, as long as
-nothing else failed. The same mechanism `launch-readiness` uses. The
-console lines are written either way, because they are what names the
-offending cookie or domain.
-
 ## Env-var contract (factory -> spec)
 
 | Var                  | Purpose                                                                |
 | -------------------- | ---------------------------------------------------------------------- |
 | `CHECK_TARGET_URL`   | Absolute URL to test                                                   |
 | `CHECK_KIND`         | Must equal `"gdpr"` for this spec to enforce                           |
-| `CHECK_PARAMS`       | JSON: complianceMode + resolved rules from preset + overrides          |
+| `CHECK_PARAMS`       | JSON: complianceMode, checkLevel (if set) + resolved rules             |
 | `CHECK_IN_RESTRICTED_REGION` | Optional dev override (`true` / `false`)                       |
+| `GDPR_CHECK_LEVEL`   | `report`, `standard` (default) or `strict`. A site's `checkLevel` wins |
+| `GDPR_REGION`        | ISO region code. Skips the GeoIP lookup                                |
+| `GDPR_GEOIP_API_KEY` | ipapi.co API key. Store as a secret                                    |
 
 The rule set is fully resolved at deploy time by `factory.ts`, so the
 spec is data-driven and the algorithm has no inline blocklist to drift

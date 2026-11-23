@@ -9,16 +9,38 @@
 //                       so the same shared Playwright config can host all
 //                       Playwright kinds.
 //   CHECK_TARGET_URL  — absolute URL to load.
-//   CHECK_PARAMS      — JSON blob: { complianceMode, trackingDomains,
-//                       cookieBlocklist, restrictedRegions,
+//   CHECK_PARAMS      — JSON blob: { complianceMode, checkLevel?,
+//                       trackingDomains, cookieBlocklist, restrictedRegions,
 //                       restrictedChecklyLocations, gtmDomain }
 //                       (resolved by gdpr-check/factory.ts from the
 //                       preset + overrides at deploy time, so every spec
 //                       run is data-driven and the algorithm has no inline
 //                       blocklist to drift from config).
+//
+// Runtime env, set per environment rather than per check:
+//
+//   GDPR_CHECK_LEVEL           — report | standard | strict. Default standard.
+//                                A site's own checkLevel wins.
+//   GDPR_REGION                — ISO code (e.g. DE, US-CA). Skips the GeoIP lookup.
+//   GDPR_GEOIP_API_KEY         — ipapi.co key, avoids the shared-IP 429.
+//   CHECK_IN_RESTRICTED_REGION — true | false, local debugging.
+//
+// Grading lives in ./grading.ts; levels are explained in the kind's README.
 
 import fs from 'node:fs';
-import { test } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
+import {
+  type ConsentDefault,
+  type Finding,
+  type OffendingCookie,
+  type RegionInfo,
+  type TrackingRequest,
+  describeRegion,
+  detectRegion,
+  gradeFindings,
+  resolveCheckLevel,
+  verdictOf,
+} from './grading.ts';
 
 declare const process: { env: Record<string, string | undefined> };
 declare const fetch: (url: string, init?: { signal?: AbortSignal }) => Promise<{
@@ -33,6 +55,7 @@ type ComplianceMode = 'global' | 'targeted';
 
 interface CheckParams {
   complianceMode: ComplianceMode;
+  checkLevel?: string;
   trackingDomains: string[];
   cookieBlocklist: Record<string, string[]>;
   restrictedRegions: string[];
@@ -72,6 +95,22 @@ function parseCheckParams(): CheckParams {
 const CHECK_KIND = process.env.CHECK_KIND ?? '';
 const isOurKind = CHECK_KIND === KIND;
 
+// GeoIP once per worker, not per test.
+const test = base.extend<object, { region: RegionInfo }>({
+  region: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use) => {
+      // No lookup when another kind's check is running this file.
+      if (!CHECK_PARAMS) {
+        await use({ inRestricted: true, region: 'UNKNOWN', source: 'fallback', reason: 'not a gdpr run' });
+        return;
+      }
+      await use(await detectRegion(CHECK_PARAMS, process.env, fetch));
+    },
+    { scope: 'worker' },
+  ],
+});
+
 // Self-skip when sharing the Playwright config with other kinds' specs.
 // In Checkly's cloud each PlaywrightCheck is configured with its own
 // CHECK_KIND env var, so only the right spec actually runs.
@@ -81,140 +120,6 @@ if (!isOurKind) {
 
 const CHECK_TARGET_URL = isOurKind ? requireEnv('CHECK_TARGET_URL') : '';
 const CHECK_PARAMS = isOurKind ? parseCheckParams() : null;
-
-// ---------- Region detection ----------
-
-async function detectRegion(params: CheckParams): Promise<{
-  inRestricted: boolean;
-  country: string;
-  region?: string;
-  source: 'override' | 'checkly-env' | 'ipapi' | 'fallback';
-}> {
-  // Manual override (handy for local debugging).
-  const override = process.env.CHECK_IN_RESTRICTED_REGION;
-  if (override !== undefined) {
-    const v = override.toLowerCase();
-    if (v === 'true' || v === 'false') {
-      return { inRestricted: v === 'true', country: 'OVERRIDE', source: 'override' };
-    }
-  }
-
-  const checklyRegion = process.env.CHECKLY_REGION;
-  if (checklyRegion) {
-    return {
-      inRestricted: params.restrictedChecklyLocations.includes(checklyRegion),
-      country: checklyRegion,
-      source: 'checkly-env',
-    };
-  }
-
-  try {
-    // **Only when the runtime has it.** Checkly runs this inside a sandbox
-    // where `AbortSignal` is not defined, so `AbortSignal.timeout` threw on
-    // every run and the catch below reported that as a failed GeoIP lookup,
-    // forcing `inRestricted: true`. Every check of this kind had been
-    // evaluating against region UNKNOWN -- the strictest answer rather than
-    // the site's own -- with nothing to say so beyond one console warning.
-    // Confirmed on a live run: "GeoIP lookup failed; defaulting to
-    // inRestricted=true. Error: AbortSignal is not defined".
-    const abortable =
-      typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-        ? { signal: AbortSignal.timeout(5_000) }
-        : {};
-
-    const res = await fetch('https://ipapi.co/json/', abortable);
-    if (!res.ok) throw new Error(`ipapi returned ${res.status}`);
-    const data = (await res.json()) as { country_code?: string; region_code?: string };
-    const country = (data.country_code ?? '').toUpperCase();
-    const region = data.region_code?.toUpperCase();
-    const combined = region ? `${country}-${region}` : country;
-    const inRestricted = params.restrictedRegions.includes(country) || params.restrictedRegions.includes(combined);
-    return { inRestricted, country, region, source: 'ipapi' };
-  } catch (err) {
-    console.warn(
-      'GeoIP lookup failed; defaulting to inRestricted=true. Error:',
-      (err as Error).message,
-    );
-    return { inRestricted: true, country: 'UNKNOWN', source: 'fallback' };
-  }
-}
-
-// ---------- Severity ----------
-
-type Severity = 'critical' | 'serious' | 'moderate' | 'advisory';
-
-interface OffendingCookie {
-  name: string;
-  domain: string;
-  party: string;
-  rule: string;
-}
-
-const SEVERITY_ORDER: Severity[] = ['critical', 'serious', 'moderate', 'advisory'];
-
-const SEVERITY_REASON: Record<Severity, string> = {
-  critical: 'cross-site advertising identifier',
-  serious: 'first-party analytics or profiling identifier',
-  moderate: 'third-party embed or consent-mode weakness',
-  advisory: 'no identifier stored',
-};
-
-/**
- * What a category's cookies actually do, which is what decides how much
- * trouble they are.
- *
- * **Advertising identifiers are the ones regulators act on**: they follow a
- * person between sites and feed retargeting, so anything an ad platform sets
- * before consent is critical. Analytics identifiers are a real violation too,
- * but they profile within one site rather than across the web, and several
- * supervisory authorities treat first-party analytics far more leniently --
- * so they rank below. Embeds and consent-mode gaps are configuration
- * weaknesses: the fix is a setting rather than removing a tag.
- *
- * A category somebody adds themselves is treated as serious, because adding
- * one is a deliberate act and the safe reading of "I care about this cookie"
- * is not "ignore it".
- */
-const CATEGORY_SEVERITY: Record<string, Severity> = {
-  google_ads: 'critical',
-  meta: 'critical',
-  google_doubleclick: 'critical',
-  bing: 'critical',
-  linkedin: 'critical',
-  tiktok: 'critical',
-  pinterest: 'critical',
-
-  google_analytics: 'serious',
-  hotjar: 'serious',
-  hubspot: 'serious',
-
-  youtube: 'moderate',
-  google_shared: 'moderate',
-};
-
-/**
- * Cookies that match a blocklist pattern but store no identifier.
- *
- * `test_cookie` is DoubleClick checking whether cookies work at all. It holds
- * no value tied to a person and is discarded immediately. Counting it beside
- * a live advertising identifier is what makes a report look worse than it is,
- * and is part of why an online scanner and this check disagree.
- */
-const ADVISORY_COOKIES = new Set(['test_cookie']);
-
-/** Endpoints that measure rather than advertise. */
-const ANALYTICS_DOMAINS = new Set(['google-analytics.com', 'analytics.google.com']);
-
-function severityOfCookie(cookie: OffendingCookie): Severity {
-  if (ADVISORY_COOKIES.has(cookie.name)) {
-    return 'advisory';
-  }
-
-  // `rule` is `category:pattern`, as the blocklist is keyed.
-  const category = cookie.rule.split(':')[0] ?? '';
-
-  return CATEGORY_SEVERITY[category] ?? 'serious';
-}
 
 // ---------- Cookie / domain matchers ----------
 
@@ -282,7 +187,7 @@ const CONSENT_INIT_SCRIPT = `
       var settings = args[2] || args['2']
       if (!mode || !settings) return
       window.__gdprConsentLog.push({
-        at: performance.now(),
+        at: Date.now(),
         mode: mode,
         analytics_storage: settings.analytics_storage,
         ad_storage: settings.ad_storage,
@@ -293,7 +198,7 @@ const CONSENT_INIT_SCRIPT = `
 
 // ---------- The check ----------
 
-test('GDPR - no tracking before consent', async ({ page, context }) => {
+test('GDPR - no tracking before consent', async ({ page, context, region }) => {
   test.setTimeout(60_000);
 
   if (!isOurKind || !CHECK_PARAMS) {
@@ -303,14 +208,9 @@ test('GDPR - no tracking before consent', async ({ page, context }) => {
   const params = CHECK_PARAMS;
   const trackingDomainsSet = new Set(params.trackingDomains);
 
-  const {
-    inRestricted: IN_RESTRICTED_REGION,
-    country: CURRENT_REGION,
-    region: CURRENT_SUBREGION,
-    source: REGION_SOURCE,
-  } = await detectRegion(params);
+  const { level, source: levelSource } = resolveCheckLevel(params.checkLevel, process.env.GDPR_CHECK_LEVEL);
 
-  const trackingHits: { url: string; domain: string; resourceType: string }[] = [];
+  const trackingRequests: TrackingRequest[] = [];
   let gtmHit = false;
   page.on('request', (req) => {
     const url = req.url();
@@ -321,7 +221,7 @@ test('GDPR - no tracking before consent', async ({ page, context }) => {
       return;
     }
     if (trackingDomainsSet.has(domain)) {
-      trackingHits.push({ url, domain, resourceType: req.resourceType() });
+      trackingRequests.push({ url, domain, at: Date.now() });
     }
   });
 
@@ -351,131 +251,78 @@ test('GDPR - no tracking before consent', async ({ page, context }) => {
   const cookies = [...cookieMap.values()];
 
   const pageReg = registrableDomain(hostnameOf(CHECK_TARGET_URL));
-  const offendingCookies = cookies
-    .map((c) => {
-      const rule = matchCookie(c.name, params.cookieBlocklist);
-      if (!rule) return null;
-      const cookieReg = registrableDomain(c.domain.replace(/^\./, ''));
-      const party = cookieReg === pageReg ? 'first' : 'third';
-      return { name: c.name, domain: c.domain, party, rule };
-    })
-    .filter((x): x is { name: string; domain: string; party: string; rule: string } => x !== null);
+  const offendingCookies: OffendingCookie[] = cookies.flatMap((c) => {
+    const rule = matchCookie(c.name, params.cookieBlocklist);
+    if (!rule) return [];
+    const cookieReg = registrableDomain(c.domain.replace(/^\./, ''));
+    const party = cookieReg === pageReg ? 'first' : 'third';
+    return [{ name: c.name, domain: c.domain, party, rule }];
+  });
 
   const consentLog = (await page
     .evaluate(() => (window as unknown as { __gdprConsentLog?: unknown[] }).__gdprConsentLog ?? [])
-    .catch(() => [])) as Array<{ mode?: string; analytics_storage?: string; ad_storage?: string }>;
-  const consentDefault = consentLog.find(
+    .catch(() => [])) as Array<{ at?: number; mode?: string; analytics_storage?: string; ad_storage?: string }>;
+  const deniedDefault = consentLog.find(
     (e) => e?.mode === 'default' && e?.analytics_storage === 'denied' && e?.ad_storage === 'denied',
   );
+  const consentDefault: ConsentDefault | null = deniedDefault ? { at: deniedDefault.at ?? 0 } : null;
 
-  const enforce =
-    params.complianceMode === 'global' ||
-    (params.complianceMode === 'targeted' && IN_RESTRICTED_REGION);
+  // Report never enforces; targeted mode enforces only from a restricted region.
+  const regionEnforces = params.complianceMode === 'global' || region.inRestricted;
+  const enforce = level !== 'report' && regionEnforces;
 
-  const regionLabel = CURRENT_SUBREGION ? `${CURRENT_REGION}-${CURRENT_SUBREGION}` : CURRENT_REGION;
+  const findings: Finding[] = gradeFindings(
+    {
+      pageUrl: CHECK_TARGET_URL,
+      cookies: offendingCookies,
+      trackingRequests,
+      gtmLoaded: gtmHit,
+      consentDefault,
+    },
+    level === 'report' ? 'standard' : level,
+  );
+  const failures = findings.filter((f) => f.severity === 'FAIL');
+  const warnings = findings.filter((f) => f.severity === 'WARN');
+  const verdict = verdictOf(findings);
+
   console.log('GDPR check:', CHECK_TARGET_URL);
-  console.log('  compliance mode:         ', params.complianceMode);
-  console.log('  detected region:         ', `${regionLabel} (via ${REGION_SOURCE})`);
-  console.log('  region is restricted:    ', IN_RESTRICTED_REGION);
-  console.log('  enforcing assertions:    ', enforce);
-  console.log('  cookies observed:        ', cookies.length);
-  console.log('  offending cookies:       ', offendingCookies.length);
-  console.log('  tracking requests:       ', trackingHits.length);
-  console.log('  GTM observed:            ', gtmHit);
-  console.log('  consent-mode denied dflt:', !!consentDefault);
-  for (const o of offendingCookies) {
-    console.log(`    - cookie ${o.name} (${o.party}-party @ ${o.domain}) matched ${o.rule}`);
+  console.log('  check level:          ', `${level} (${levelSource})`);
+  console.log('  compliance mode:      ', params.complianceMode);
+  console.log('  region:               ', describeRegion(region));
+  console.log('  enforcing:            ', enforce ? 'yes' : `no (${notEnforcingReason(level)})`);
+  console.log('  cookies observed:     ', cookies.length);
+  console.log('  tracking requests:    ', trackingRequests.length);
+  console.log('  GTM observed:         ', gtmHit);
+  console.log('  consent default denied:', !!consentDefault);
+  console.log(`  findings (${findings.length}):`);
+  for (const f of findings) {
+    console.log(`    [${f.severity}] ${f.rule}: ${f.detail}`);
+    if (f.url !== CHECK_TARGET_URL) console.log(`           ${f.url}`);
   }
-  const trackingDomainsHit = [...new Set(trackingHits.map((r) => r.domain))];
-  if (trackingDomainsHit.length) {
-    console.log(`    - tracking domains hit: ${trackingDomainsHit.join(', ')}`);
-  }
-  if (gtmHit && !consentDefault) {
-    console.log('    - GTM loaded WITHOUT a consent-mode denied default first (probable violation)');
-  } else if (gtmHit && consentDefault) {
-    console.log('    - GTM loaded but consent-mode default=denied recorded first (acceptable)');
-  }
+  if (findings.length === 0) console.log('    none');
 
+  const counts = `${failures.length} FAIL, ${warnings.length} WARN`;
   if (!enforce) {
-    console.log('  -> enforcement skipped (targeted mode, unrestricted region)');
+    console.log(`  result: not enforced, would have ${verdict} (${counts})`);
     return;
   }
+  console.log(`  result: ${verdict} (${counts})`);
 
-  const failures: string[] = [];
-
-  // Worst first, and grouped, so the line somebody reads first is the one
-  // worth acting on. A flat list put "test_cookie" beside a live advertising
-  // identifier and made four findings look like four equal problems.
-  const bySeverity = new Map<Severity, OffendingCookie[]>();
-
-  for (const cookie of offendingCookies) {
-    const severity = severityOfCookie(cookie);
-    bySeverity.set(severity, [...(bySeverity.get(severity) ?? []), cookie]);
+  for (const w of warnings) {
+    test.info().annotations.push({ type: 'warning', description: `${w.rule}: ${w.detail}` });
   }
 
-  for (const severity of SEVERITY_ORDER) {
-    const group = bySeverity.get(severity);
-
-    if (!group?.length) {
-      continue;
-    }
-
-    failures.push(
-      `[${severity.toUpperCase()}] ${SEVERITY_REASON[severity]} — `
-        + `${group.length} cookie${group.length === 1 ? '' : 's'} set before consent:`
-        + group.map((c) => `\n  - ${c.name} (${c.party}-party @ ${c.domain}) [${c.rule}]`).join(''),
+  // WARN-only runs show as Degraded in Checkly rather than a clean pass.
+  if (failures.length === 0 && warnings.length > 0) {
+    fs.writeFileSync(
+      'degraded.json',
+      JSON.stringify({ messages: warnings.map((w) => `[WARN] ${w.rule}: ${w.detail}`) }),
     );
   }
 
-  if (trackingHits.length > 0) {
-    // An analytics endpoint is a lesser problem than an ad-tech one: it
-    // profiles within this site rather than across the web.
-    const adTech = trackingDomainsHit.filter((d) => !ANALYTICS_DOMAINS.has(d));
-    const analytics = trackingDomainsHit.filter((d) => ANALYTICS_DOMAINS.has(d));
-
-    if (adTech.length > 0) {
-      failures.push(
-        `[CRITICAL] ${SEVERITY_REASON.critical} — advertising requests fired before consent to:`
-          + adTech.map((d) => `\n  - ${d}`).join(''),
-      );
-    }
-
-    if (analytics.length > 0) {
-      failures.push(
-        `[SERIOUS] ${SEVERITY_REASON.serious} — analytics requests fired before consent to:`
-          + analytics.map((d) => `\n  - ${d}`).join(''),
-      );
-    }
-  }
-
-  if (gtmHit && !consentDefault) {
-    failures.push(
-      `[MODERATE] ${SEVERITY_REASON.moderate} — `
-        + 'GTM loaded but no Consent Mode default=denied was set first. '
-        + "Configure gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' }) "
-        + 'before the GTM container script.',
-    );
-  }
-
-  // **Degraded, not failed.** Cookies set before consent is a compliance
-  // problem, and a real one, but it is not the site being down -- it wants
-  // somebody to schedule a fix, not to wake somebody at three in the morning.
-  // Reported as failure it competed for attention with genuine outages, which
-  // is how a report stops being read. Checkly has no notion of
-  // assertion-level severity (a run either fails or it does not) except for
-  // this one convention: a `degraded.json` file left in the working directory
-  // marks the run Degraded rather than Up, as long as nothing else failed.
-  // Same mechanism launch-readiness uses, confirmed against a live account.
-  //
-  // The console lines stay regardless, because they are what somebody reads
-  // to find out which cookie or which domain.
-  if (failures.length > 0) {
-    const report =
-      `GDPR compliance failed for ${CHECK_TARGET_URL} (region ${regionLabel}):\n\n`
-      + failures.join('\n\n');
-
-    console.warn(report);
-
-    fs.writeFileSync('degraded.json', JSON.stringify({ messages: failures }));
-  }
+  expect(failures, `GDPR ${level}: findings graded FAIL for ${CHECK_TARGET_URL}`).toEqual([]);
 });
+
+function notEnforcingReason(level: string): string {
+  return level === 'report' ? 'report level' : 'targeted mode, unrestricted region';
+}
