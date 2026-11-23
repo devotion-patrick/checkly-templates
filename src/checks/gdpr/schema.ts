@@ -40,7 +40,11 @@ export const KIND = 'gdpr' as const;
 // subdomains. Requests were reduced to their registrable domain first, so
 // entries like bat.bing.com, analytics.tiktok.com and snap.licdn.com never
 // matched and those requests went undetected.
-export const KIND_VERSION = '3.1.0';
+//
+// Bumped to 3.2.0: facebook.com added to the preset's trackingDomains. Meta
+// pixel hits go to facebook.com/tr, so only the facebook.net script load
+// was caught, and a pixel fired without it went undetected.
+export const KIND_VERSION = '3.2.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type CheckLevel = 'report' | 'standard' | 'strict';

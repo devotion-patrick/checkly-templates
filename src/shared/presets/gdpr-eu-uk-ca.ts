@@ -38,6 +38,8 @@ export const trackingDomains: ReadonlySet<string> = new Set([
   'googleadservices.com',
   'connect.facebook.net',
   'facebook.net',
+  // Meta pixel hits go to facebook.com/tr; facebook.net only serves the script.
+  'facebook.com',
   'bat.bing.com',
   'analytics.tiktok.com',
   'snap.licdn.com',
