@@ -43,6 +43,13 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (monitor) cleanly, including the common pattern where uptime is
   handled by another tool (e.g. Better Stack) and Checkly is reserved
   for the assertion-heavy kinds.
+- **Single-file spec bundles** under `src/deploy/specs/<kind>.spec.js`,
+  one per Playwright kind with its own spec (`ccpa`, `gdpr`,
+  `launch-readiness`, `xpath-spa`). For consumers deploying through
+  Checkly's REST API, which takes one script per check and so can't send
+  a spec that imports local files. Built with esbuild by
+  `src/deploy/build-specs.mjs`; CI runs `--check` to keep them fresh.
+  No `KIND_VERSION` changes: check behaviour is the same.
 
 ### Architecture notes for downstream forks
 

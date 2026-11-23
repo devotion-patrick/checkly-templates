@@ -1,2 +1,3 @@
-# Generated JSON is byte-compared by build-schema/build-manifest --check; CRLF on Windows checkout fails it.
+# Generated files are byte-compared by build-schema/build-manifest/build-specs --check; CRLF on Windows checkout fails it.
 *.json text eol=lf
+src/deploy/specs/*.js text eol=lf
