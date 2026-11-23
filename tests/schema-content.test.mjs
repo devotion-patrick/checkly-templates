@@ -25,6 +25,7 @@ const EXPECTED_KINDS = [
   'xpath',
   'xpath-spa',
   'gdpr',
+  'ccpa',
   'launch-readiness',
   'custom-api',
   'restricted-admin',

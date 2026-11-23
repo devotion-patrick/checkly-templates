@@ -13,6 +13,15 @@ import assert from 'node:assert/strict';
 import { baseProject, configWith, validateConfig } from './helpers.mjs';
 
 const MINIMAL_BY_KIND = {
+  ccpa: {
+    kind: 'ccpa',
+    logicalId: 'min-ccpa',
+    env: 'PROD',
+    url: 'https://example.com',
+    locations: ['us-west-1'],
+    smoke: true,
+    monitor: false,
+  },
   'uptime-ssl': {
     kind: 'uptime-ssl',
     logicalId: 'min-uptime',
@@ -84,6 +93,7 @@ const PER_KIND_REQUIRED = {
   'xpath-spa': ['expect'],
   'launch-readiness': ['checks'],
   gdpr: ['complianceMode'],
+  ccpa: ['locations'],
 };
 
 // `env` is intentionally NOT in COMMON_REQUIRED at the schema level —

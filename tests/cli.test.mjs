@@ -186,15 +186,15 @@ describe('try-config.mjs (subprocess)', () => {
   it('--mode validate honours CHECKLY_PURPOSE=test (filters down to smoke entries)', () => {
     const r = run([tryConfig, '--mode', 'validate', '--config', example], { ...exampleEnv, CHECKLY_PURPOSE: 'test' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
-    // Example has 9 entries; 8 with smoke=true (uptime-ssl is monitor-only).
-    assert.match(r.stdout, /8\/9 entries for CHECKLY_PURPOSE=test/);
+    // Example has 10 entries; 9 with smoke=true (uptime-ssl is monitor-only).
+    assert.match(r.stdout, /9\/10 entries for CHECKLY_PURPOSE=test/);
   });
 
   it('--mode validate honours CHECKLY_PURPOSE=monitor', () => {
     const r = run([tryConfig, '--mode', 'validate', '--config', example], { ...exampleEnv, CHECKLY_PURPOSE: 'monitor' });
     assert.equal(r.status, 0, r.stdout + r.stderr);
-    // Example has 3 monitor=true entries.
-    assert.match(r.stdout, /3\/9 entries for CHECKLY_PURPOSE=monitor/);
+    // Example has 4 monitor=true entries.
+    assert.match(r.stdout, /4\/10 entries for CHECKLY_PURPOSE=monitor/);
   });
 
   it('--mode validate fails clearly when a header valueFromEnv var is missing', () => {

@@ -24,6 +24,7 @@ Six built-in check kinds, all expressible in a single unified config:
 | `xpath`             | `ApiCheck`        | Response body contains / does-not-contain substrings    |
 | `xpath-spa`         | `PlaywrightCheck` | DOM selector assertions on a JS-rendered page           |
 | `gdpr`              | `PlaywrightCheck` | No tracking cookies/requests before consent (EU/UK/CA)  |
+| `ccpa`              | `PlaywrightCheck` | California opt-out: GPC honoured, opt-out link present  |
 
 Plus one reusable deploy template per CI system. The consumer footprint
 is one config file plus ~10 lines of YAML.
@@ -107,7 +108,9 @@ checkly-templates/
 │   ├── deploy/                # entry point (checkly.config.ts, loader, registry, schema)
 │   ├── shared/                # cross-cutting helpers (tags, presets, types)
 │   └── checks/                # one folder per kind
+│       ├── _privacy/          # helpers shared by the gdpr and ccpa specs
 │       ├── gdpr/              # PlaywrightCheck + spec
+│       ├── ccpa/              # PlaywrightCheck + spec
 │       ├── uptime-ssl/        # ApiCheck factory
 │       ├── redirect/          # ApiCheck factory
 │       ├── dotnet-health/     # ApiCheck factory

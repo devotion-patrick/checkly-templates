@@ -118,6 +118,18 @@ const KINDS = [
     },
   },
   {
+    kind: 'ccpa',
+    entry: {
+      kind: 'ccpa',
+      logicalId: 'cv-ccpa',
+      env: 'PROD',
+      url: 'https://example.com',
+      locations: ['us-west-1'],
+      smoke: true,
+      monitor: false,
+    },
+  },
+  {
     kind: 'custom-api',
     entry: {
       kind: 'custom-api',

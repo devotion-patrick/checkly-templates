@@ -39,7 +39,7 @@ const jiti = createJiti(import.meta.url);
 // Only these kinds have a real, self-contained Playwright spec under
 // src/checks/<kind>/__checks__ plus a checkly-free env.ts. Every other
 // registered kind is a Checkly ApiCheck construct, out of scope here.
-const PLAYWRIGHT_KINDS = ['gdpr', 'xpath-spa', 'launch-readiness', 'restricted-admin'];
+const PLAYWRIGHT_KINDS = ['gdpr', 'ccpa', 'xpath-spa', 'launch-readiness', 'restricted-admin'];
 
 function envModulePath(kind) {
   return path.join(repoRoot, 'src', 'checks', kind, 'env.ts');

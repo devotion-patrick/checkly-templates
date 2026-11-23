@@ -63,6 +63,8 @@ A location in `restrictedChecklyLocations` is restricted; any other is
 not. The default list covers the EU, London and `us-west-1`
 (N. California). To drop California, remove both `US-CA` from
 `restrictedRegions` and `us-west-1` from `restrictedChecklyLocations`.
+California's own law (CCPA) is opt-out, not opt-in, so this check's test
+is the wrong one there; use the [`ccpa`](../ccpa/README.md) kind.
 
 ### Region detection
 
@@ -86,7 +88,9 @@ For each run:
 3. Snapshots cookies twice (synchronous Pixel cookies vs async GA
    cookies land at different points) and unions the snapshots.
 4. Classifies cookies against `cookieBlocklist` and outbound requests
-   against `trackingDomains`. Google requests are read for their Consent
+   against `trackingDomains` (an entry matches its own host and any
+   subdomain, so `bat.bing.com` catches `bat.bing.com` but not
+   `www.bing.com`). Google requests are read for their Consent
    Mode state (`gcs`, then `gcd`). GTM is handled separately because it
    can be compliant when paired with a consent-mode default=denied.
 5. Grades every finding INFO, WARN or FAIL for the check level, prints

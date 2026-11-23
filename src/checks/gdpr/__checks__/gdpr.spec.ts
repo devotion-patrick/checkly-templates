@@ -30,6 +30,8 @@
 
 import fs from 'node:fs';
 import { expect, test as base } from '@playwright/test';
+import { hostnameOf, matchCookie, matchDomain, registrableDomain } from '../../_privacy/common.ts';
+import { loadAndSettle, requireEnv as requireEnvFrom, snapshotCookies } from '../../_privacy/browser.ts';
 import {
   type ConsentDefault,
   type Finding,
@@ -65,14 +67,7 @@ interface CheckParams {
 }
 
 function requireEnv(name: string): string {
-  const v = process.env[name];
-  if (v === undefined || v === '') {
-    throw new Error(
-      `Required environment variable ${name} is not set. ` +
-        `Configure it via the kind's factory (gdpr-check/factory.ts).`,
-    );
-  }
-  return v;
+  return requireEnvFrom(process.env, name, KIND);
 }
 
 function parseCheckParams(): CheckParams {
@@ -122,44 +117,6 @@ if (!isOurKind) {
 const CHECK_TARGET_URL = isOurKind ? requireEnv('CHECK_TARGET_URL') : '';
 const CHECK_PARAMS = isOurKind ? parseCheckParams() : null;
 
-// ---------- Cookie / domain matchers ----------
-
-function matchCookie(name: string, blocklist: Record<string, string[]>): string | null {
-  for (const [category, patterns] of Object.entries(blocklist)) {
-    for (const pattern of patterns) {
-      if (pattern.endsWith('*')) {
-        const prefix = pattern.slice(0, -1);
-        if (name.startsWith(prefix)) return `${category}:${pattern}`;
-      } else if (name === pattern) {
-        return `${category}:${pattern}`;
-      }
-    }
-  }
-  return null;
-}
-
-const TWO_LABEL_TLDS = new Set([
-  'co.uk', 'co.nz', 'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au',
-  'co.jp', 'com.sg', 'com.hk',
-]);
-function registrableDomain(host: string): string {
-  if (!host) return '';
-  const parts = host.toLowerCase().split('.');
-  if (parts.length < 2) return host.toLowerCase();
-  const last2 = parts.slice(-2).join('.');
-  if (parts.length >= 3 && TWO_LABEL_TLDS.has(last2)) {
-    return parts.slice(-3).join('.');
-  }
-  return last2;
-}
-function hostnameOf(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return '';
-  }
-}
-
 // Patched before any page script runs so we observe gtag('consent', ...)
 // calls in execution order. Reading page source for these is unreliable
 // because GTM and inlined snippets can both fire them.
@@ -207,7 +164,6 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
     return;
   }
   const params = CHECK_PARAMS;
-  const trackingDomainsSet = new Set(params.trackingDomains);
 
   const { level, source: levelSource } = resolveCheckLevel(params.checkLevel, process.env.GDPR_CHECK_LEVEL);
 
@@ -215,41 +171,22 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
   let gtmHit = false;
   page.on('request', (req) => {
     const url = req.url();
-    const domain = registrableDomain(hostnameOf(url));
-    if (!domain) return;
-    if (domain === params.gtmDomain) {
+    const host = hostnameOf(url);
+    if (!host) return;
+    if (matchDomain(host, [params.gtmDomain])) {
       gtmHit = true;
       return;
     }
-    if (trackingDomainsSet.has(domain)) {
-      trackingRequests.push({ url, domain, at: Date.now() });
+    // Entry or a subdomain of it, so `bat.bing.com` matches; registrable domain kept for grading.
+    if (matchDomain(host, params.trackingDomains)) {
+      trackingRequests.push({ url, domain: registrableDomain(host), at: Date.now() });
     }
   });
 
   await context.addInitScript({ content: CONSENT_INIT_SCRIPT });
 
-  await page.goto(CHECK_TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 25_000 });
-
-  await page
-    .evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    .catch(() => {
-      /* ignore */
-    });
-
-  try {
-    await page.waitForLoadState('networkidle', { timeout: 8_000 });
-  } catch {
-    /* ignore */
-  }
-  const firstSnap = await context.cookies();
-  await page.waitForTimeout(3000);
-  const secondSnap = await context.cookies();
-  const cookieMap = new Map<string, (typeof firstSnap)[number]>();
-  for (const c of [...firstSnap, ...secondSnap]) {
-    const key = `${c.name}::${c.domain}::${c.path}`;
-    if (!cookieMap.has(key)) cookieMap.set(key, c);
-  }
-  const cookies = [...cookieMap.values()];
+  await loadAndSettle(page, CHECK_TARGET_URL);
+  const cookies = await snapshotCookies(page, context);
 
   const pageReg = registrableDomain(hostnameOf(CHECK_TARGET_URL));
   const offendingCookies: OffendingCookie[] = cookies.flatMap((c) => {

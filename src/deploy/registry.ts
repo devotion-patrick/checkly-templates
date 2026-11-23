@@ -1,4 +1,5 @@
 import { gdprModule } from '@checkly-templates/gdpr';
+import { ccpaModule } from '@checkly-templates/ccpa';
 import { uptimeSslModule } from '@checkly-templates/uptime-ssl';
 import { redirectModule } from '@checkly-templates/redirect';
 import { dotnetHealthModule } from '@checkly-templates/dotnet-health';
@@ -25,6 +26,7 @@ export const MODULES: ReadonlyArray<KindModule<any>> = [
   xpathModule,
   xpathSpaModule,
   gdprModule,
+  ccpaModule,
   launchReadinessModule,
   customApiModule,
   restrictedAdminModule,

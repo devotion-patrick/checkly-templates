@@ -29,6 +29,7 @@ const ENTRY_EXTRAS = {
   xpath: { expect: { contains: ['x'] } },
   'xpath-spa': { expect: [{ selector: 'h1', contains: 'x' }] },
   gdpr: { complianceMode: 'targeted' },
+  ccpa: { locations: ['us-west-1'] },
   'launch-readiness': {},
   'custom-api': { script: 'if (response.statusCode >= 500) throw new Error("down");' },
   'restricted-admin': { expectedAccess: 'gated' },

@@ -175,7 +175,7 @@ describe('gdpr-eu-uk-ca preset', () => {
   });
 
   it('lists the standard tracking domains', () => {
-    for (const d of ['google-analytics.com', 'doubleclick.net', 'connect.facebook.net']) {
+    for (const d of ['google-analytics.com', 'doubleclick.net', 'connect.facebook.net', 'facebook.com']) {
       assert.ok(presets.trackingDomains.has(d), `expected ${d} in trackingDomains`);
     }
   });

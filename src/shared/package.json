@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Cross-cutting helpers used by every kind module (tag conventions, frequency parsing, shared TS types, GDPR preset).",
+  "description": "Cross-cutting helpers used by every kind module (tag conventions, frequency parsing, shared TS types, GDPR and CCPA presets).",
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",
@@ -14,7 +14,8 @@
     "./locations": "./locations.ts",
     "./check-name": "./check-name.ts",
     "./headers": "./headers.ts",
-    "./presets/gdpr-eu-uk-ca": "./presets/gdpr-eu-uk-ca.ts"
+    "./presets/gdpr-eu-uk-ca": "./presets/gdpr-eu-uk-ca.ts",
+    "./presets/ccpa-ca": "./presets/ccpa-ca.ts"
   },
   "peerDependencies": {
     "checkly": "^7.15.0"
