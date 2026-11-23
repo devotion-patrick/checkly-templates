@@ -1,0 +1,17 @@
+{
+  "name": "@checkly-templates/ccpa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Checkly Playwright check that tests California opt-out compliance: GPC honoured, opt-out link present, sale/share tracking stops after opt-out.",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts",
+    "./factory": "./factory.ts"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.60.0",
+    "checkly": "^7.15.0"
+  }
+}

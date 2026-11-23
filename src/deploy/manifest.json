@@ -49,6 +49,14 @@
         "frequency": "EVERY_24H"
       }
     },
+    "ccpa": {
+      "version": "1.0.0",
+      "checkType": "PLAYWRIGHT",
+      "isPlaywright": true,
+      "defaults": {
+        "frequency": "EVERY_24H"
+      }
+    },
     "launch-readiness": {
       "version": "1.1.0",
       "checkType": "PLAYWRIGHT",

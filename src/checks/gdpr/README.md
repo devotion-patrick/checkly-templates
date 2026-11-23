@@ -63,6 +63,8 @@ A location in `restrictedChecklyLocations` is restricted; any other is
 not. The default list covers the EU, London and `us-west-1`
 (N. California). To drop California, remove both `US-CA` from
 `restrictedRegions` and `us-west-1` from `restrictedChecklyLocations`.
+California's own law (CCPA) is opt-out, not opt-in, so this check's test
+is the wrong one there; use the [`ccpa`](../ccpa/README.md) kind.
 
 ### Region detection
 

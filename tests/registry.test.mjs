@@ -13,6 +13,7 @@ const EXPECTED_KINDS = [
   'xpath',
   'xpath-spa',
   'gdpr',
+  'ccpa',
   'launch-readiness',
   'custom-api',
   'restricted-admin',
@@ -39,12 +40,12 @@ describe('registry: shape', () => {
     }
   });
 
-  it('isPlaywright is set on the eight Playwright kinds and nothing else', () => {
+  it('isPlaywright is set on the nine Playwright kinds and nothing else', () => {
     const pw = MODULES.filter((m) => m.isPlaywright === true).map((m) => m.kind).sort();
     assert.deepEqual(
       pw,
       [
-        'custom-multistep', 'custom-playwright', 'dotnet-health', 'gdpr',
+        'ccpa', 'custom-multistep', 'custom-playwright', 'dotnet-health', 'gdpr',
         'launch-readiness', 'restricted-admin', 'security-headers', 'xpath-spa',
       ],
     );

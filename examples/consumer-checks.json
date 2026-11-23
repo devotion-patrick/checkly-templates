@@ -90,6 +90,15 @@
       "monitor": true
     },
     {
+      "$comment": "California opt-out: GPC honoured, opt-out link present. Must run from a California location; project default locations are not used.",
+      "kind": "ccpa",
+      "logicalId": "acme-home-prod-ccpa",
+      "url": "https://www.acme.com",
+      "locations": ["us-west-1"],
+      "smoke": true,
+      "monitor": true
+    },
+    {
       "$comment": "Pre-launch smoke gate: every page-level SEO / a11y / hygiene rule we care about in one Playwright check. Daily cadence is fine because this primarily runs in the release pipeline.",
       "kind": "launch-readiness",
       "logicalId": "acme-home-launch-ready",

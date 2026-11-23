@@ -1,6 +1,6 @@
 # Playwright runner app
 
-Runs the four Playwright-based check kinds — `gdpr`, `xpath-spa`,
+Runs the five Playwright-based check kinds — `gdpr`, `ccpa`, `xpath-spa`,
 `launch-readiness`, `restricted-admin` — directly via local Playwright. **No
 Checkly account, no `CHECKLY_API_KEY`/`CHECKLY_ACCOUNT_ID`, no cloud test
 session, and no dependency on the `checkly` package at all** (check
