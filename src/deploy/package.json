@@ -8,7 +8,9 @@
     "build:schema": "node ./build-schema.mjs",
     "validate-schema": "node ./build-schema.mjs --check",
     "build:manifest": "node ./build-manifest.mjs",
-    "validate-manifest": "node ./build-manifest.mjs --check"
+    "validate-manifest": "node ./build-manifest.mjs --check",
+    "build:specs": "node ./build-specs.mjs",
+    "validate-specs": "node ./build-specs.mjs --check"
   },
   "dependencies": {
     "ajv": "^8.17.1",

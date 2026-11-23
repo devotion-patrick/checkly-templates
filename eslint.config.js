@@ -10,6 +10,7 @@ export default [
       '**/dist/**',
       '**/build/**',
       'src/deploy/schema.json',
+      'src/deploy/specs/**',
       'package-lock.json',
       'local-testing/**',
       'plans/**',

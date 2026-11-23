@@ -205,6 +205,33 @@ Both passes read the same JSON file; per-entry booleans drive the
 filtering. Set the template's `mode` parameter to `test` or `monitor`
 to run only one pass.
 
+## Deploying through Checkly's REST API
+
+For consumers that build checks themselves (e.g. the Client Portal)
+rather than running `checkly deploy`:
+
+| File | What it gives you |
+| --- | --- |
+| [`src/deploy/manifest.json`](./src/deploy/manifest.json) | Per kind: template version, Checkly `checkType`, default frequency |
+| [`src/deploy/specs/<kind>.spec.js`](./src/deploy/specs/) | One self-contained script per Playwright kind, to send as the check's script |
+| [`scripts/synthesize.mjs`](./scripts/synthesize.mjs) | The exact payloads `checkly deploy` would send, one per construct |
+
+The spec bundles exist because the source specs import local files
+(gdpr and ccpa share `src/checks/_privacy/`), and the API takes one
+script per check. Each bundle's only requires are `@playwright/test` and
+`node:` built-ins, both provided by Checkly's runtime. They're CommonJS;
+send the contents, don't run them in place (`src/deploy` is
+`"type": "module"`).
+
+`restricted-admin` has no bundle of its own: it runs the
+`launch-readiness` spec. Each check's env vars (`CHECK_KIND`,
+`CHECK_TARGET_URL`, `CHECK_PARAMS`, and `CHECK_LOCATION` for gdpr and
+ccpa) are in the `synthesize.mjs` payload.
+
+Bundles, manifest and schema are generated and committed; CI fails if
+any is stale. After changing a spec, run `npm run build:specs` in
+`src/deploy/`.
+
 ## Versioning and `$schema`
 
 Every tag ships an immutable `schema.json` as a GitHub Release asset.
