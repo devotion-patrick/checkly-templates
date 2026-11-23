@@ -30,7 +30,7 @@
 
 import fs from 'node:fs';
 import { expect, test as base } from '@playwright/test';
-import { hostnameOf, matchCookie, registrableDomain } from '../../_privacy/common.ts';
+import { hostnameOf, matchCookie, matchDomain, registrableDomain } from '../../_privacy/common.ts';
 import { loadAndSettle, requireEnv as requireEnvFrom, snapshotCookies } from '../../_privacy/browser.ts';
 import {
   type ConsentDefault,
@@ -164,7 +164,6 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
     return;
   }
   const params = CHECK_PARAMS;
-  const trackingDomainsSet = new Set(params.trackingDomains);
 
   const { level, source: levelSource } = resolveCheckLevel(params.checkLevel, process.env.GDPR_CHECK_LEVEL);
 
@@ -172,14 +171,15 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
   let gtmHit = false;
   page.on('request', (req) => {
     const url = req.url();
-    const domain = registrableDomain(hostnameOf(url));
-    if (!domain) return;
-    if (domain === params.gtmDomain) {
+    const host = hostnameOf(url);
+    if (!host) return;
+    if (matchDomain(host, [params.gtmDomain])) {
       gtmHit = true;
       return;
     }
-    if (trackingDomainsSet.has(domain)) {
-      trackingRequests.push({ url, domain, at: Date.now() });
+    // Entry or a subdomain of it, so `bat.bing.com` matches; registrable domain kept for grading.
+    if (matchDomain(host, params.trackingDomains)) {
+      trackingRequests.push({ url, domain: registrableDomain(host), at: Date.now() });
     }
   });
 

@@ -35,7 +35,12 @@ export const KIND = 'gdpr' as const;
 // location, CHECK_LOCATION set on each. Checkly's Playwright checks don't
 // expose the run location, so targeted mode relied on ipapi.co from shared
 // IPs and got 429s. Redeploying replaces the old single check.
-export const KIND_VERSION = '3.0.0';
+//
+// Bumped to 3.1.0: tracking domains match the listed host and its
+// subdomains. Requests were reduced to their registrable domain first, so
+// entries like bat.bing.com, analytics.tiktok.com and snap.licdn.com never
+// matched and those requests went undetected.
+export const KIND_VERSION = '3.1.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type CheckLevel = 'report' | 'standard' | 'strict';
