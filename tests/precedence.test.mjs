@@ -9,7 +9,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { tryFactory, baseContext } from './helpers.mjs';
+import { constructsOf, tryFactory, baseContext } from './helpers.mjs';
 
 // The kinds and a sentinel `defaults.locations` we can spot in the output.
 // Each fixture entry deliberately omits both `frequency` and `locations`
@@ -66,8 +66,8 @@ const uid = (k) => `p-${k}-${++_seq}`;
 describe('precedence: project-level locations beat kind-level defaults', () => {
   for (const { kind, entry } of KINDS) {
     it(`${kind} honours ctx.defaultLocations even when the kind has its own defaults`, () => {
-      const c = tryFactory(kind, { ...entry, logicalId: uid(kind) }, { ...baseContext, defaultLocations: ['ap-southeast-2'] });
-      assert.deepEqual([...c.locations], ['ap-southeast-2'], `${kind} ignored project default`);
+      const cs = constructsOf(tryFactory(kind, { ...entry, logicalId: uid(kind) }, { ...baseContext, defaultLocations: ['ap-southeast-2'] }));
+      assert.deepEqual(cs.flatMap((c) => [...c.locations]), ['ap-southeast-2'], `${kind} ignored project default`);
     });
   }
 });
@@ -75,7 +75,7 @@ describe('precedence: project-level locations beat kind-level defaults', () => {
 describe('precedence: project-level frequency beats kind-level defaults', () => {
   for (const { kind, entry } of KINDS) {
     it(`${kind} honours ctx.defaultFrequency`, () => {
-      const c = tryFactory(kind, { ...entry, logicalId: uid(kind) }, { ...baseContext, defaultFrequency: 'EVERY_30M' });
+      const [c] = constructsOf(tryFactory(kind, { ...entry, logicalId: uid(kind) }, { ...baseContext, defaultFrequency: 'EVERY_30M' }));
       assert.notEqual(c.frequency, undefined);
     });
   }
@@ -84,12 +84,12 @@ describe('precedence: project-level frequency beats kind-level defaults', () => 
 describe('precedence: entry-level beats project-level beats kind-level', () => {
   for (const { kind, entry } of KINDS) {
     it(`${kind} entry.locations wins over both project and kind defaults`, () => {
-      const c = tryFactory(
+      const cs = constructsOf(tryFactory(
         kind,
         { ...entry, logicalId: uid(kind), locations: ['us-east-1'] },
         { ...baseContext, defaultLocations: ['ap-southeast-2'] },
-      );
-      assert.deepEqual([...c.locations], ['us-east-1']);
+      ));
+      assert.deepEqual(cs.flatMap((c) => [...c.locations]), ['us-east-1']);
     });
   }
 });

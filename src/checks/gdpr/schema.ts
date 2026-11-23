@@ -30,7 +30,12 @@ export const KIND = 'gdpr' as const;
 // Degraded-for-everything meant a compliance check could not fail CI.
 // Degraded is kept for WARN-only runs, e.g. Consent Mode advanced pings
 // under standard.
-export const KIND_VERSION = '2.0.0';
+//
+// Bumped to 3.0.0: one check per location, logicalId suffixed with the
+// location, CHECK_LOCATION set on each. Checkly's Playwright checks don't
+// expose the run location, so targeted mode relied on ipapi.co from shared
+// IPs and got 429s. Redeploying replaces the old single check.
+export const KIND_VERSION = '3.0.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type CheckLevel = 'report' | 'standard' | 'strict';

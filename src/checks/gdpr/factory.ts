@@ -13,7 +13,11 @@ export const defaults: KindDefaults = {
   frequency: 'EVERY_24H',
 };
 
-export function factory(entry: GdprEntry, ctx: ProjectContext): PlaywrightCheck {
+/**
+ * One check per location, each with CHECK_LOCATION set. A single check run
+ * in parallel shares one env, so it can't tell which location it is in.
+ */
+export function factory(entry: GdprEntry, ctx: ProjectContext): PlaywrightCheck[] {
   const frequencyName = entry.frequency ?? ctx.defaultFrequency ?? defaults.frequency ?? "EVERY_15M";
   const locations = resolveLocations(entry, ctx);
 
@@ -23,24 +27,26 @@ export function factory(entry: GdprEntry, ctx: ProjectContext): PlaywrightCheck 
     entry.tags,
   );
 
-  const env = buildCheckEnv(entry);
+  const name = buildCheckName(ctx.project, entry);
 
-  return new PlaywrightCheck(entry.logicalId, {
-    name: buildCheckName(ctx.project, entry),
-    playwrightConfigPath: './playwright.config.ts',
-    frequency: parseFrequency(frequencyName),
-    locations: locations as never[],
-    activated: entry.activated ?? true,
-    // Fan out across every configured location each cycle rather than
-    // round-robining one location per period. For compliance we want
-    // every region tested every interval.
-    runParallel: true,
-    environmentVariables: [
-      { key: 'CHECK_TARGET_URL', value: env.CHECK_TARGET_URL },
-      { key: 'CHECK_KIND', value: env.CHECK_KIND },
-      { key: 'CHECK_PARAMS', value: env.CHECK_PARAMS },
-    ],
-    tags,
+  // Always suffixed, so adding a location later doesn't rename the first.
+  return locations.map((location) => {
+    const env = buildCheckEnv(entry, location);
+
+    return new PlaywrightCheck(`${entry.logicalId}-${location}`, {
+      name: `${name} (${location})`,
+      playwrightConfigPath: './playwright.config.ts',
+      frequency: parseFrequency(frequencyName),
+      locations: [location] as never[],
+      activated: entry.activated ?? true,
+      environmentVariables: [
+        { key: 'CHECK_TARGET_URL', value: env.CHECK_TARGET_URL },
+        { key: 'CHECK_KIND', value: env.CHECK_KIND },
+        { key: 'CHECK_PARAMS', value: env.CHECK_PARAMS },
+        { key: 'CHECK_LOCATION', value: location },
+      ],
+      tags,
+    });
   });
 }
 

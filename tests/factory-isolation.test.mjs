@@ -10,11 +10,11 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { tryFactory, baseContext } from './helpers.mjs';
+import { constructsOf, tryFactory, baseContext } from './helpers.mjs';
 
 describe('gdpr factory: overrides are isolated between calls', () => {
   it('a previous call\'s `add` does not leak into the next call', () => {
-    const a = tryFactory('gdpr', {
+    const [a] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'iso-gdpr-a',
       env: 'PROD',
@@ -24,7 +24,7 @@ describe('gdpr factory: overrides are isolated between calls', () => {
       smoke: true,
       monitor: false,
     });
-    const b = tryFactory('gdpr', {
+    const [b] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'iso-gdpr-b',
       env: 'PROD',
@@ -55,7 +55,7 @@ describe('gdpr factory: overrides are isolated between calls', () => {
       smoke: true,
       monitor: false,
     });
-    const b = tryFactory('gdpr', {
+    const [b] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'iso-gdpr-rem-b',
       env: 'PROD',
@@ -83,8 +83,8 @@ describe('gdpr factory: overrides are isolated between calls', () => {
         smoke: true,
         monitor: false,
       });
-    const p1 = JSON.parse(make().environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
-    const p2 = JSON.parse(make().environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    const p1 = JSON.parse(make()[0].environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    const p2 = JSON.parse(make()[0].environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
     assert.deepEqual(p1, p2);
   });
 });
@@ -172,7 +172,7 @@ describe('all six kinds together (one of each) instantiate without conflict', ()
         monitor: false,
       },
     ];
-    const constructs = entries.map((e) => tryFactory(e.kind, e));
+    const constructs = entries.flatMap((e) => constructsOf(tryFactory(e.kind, e)));
     assert.equal(constructs.length, 6);
     const ids = new Set(constructs.map((c) => c.logicalId));
     assert.equal(ids.size, 6, 'logicalIds collided');

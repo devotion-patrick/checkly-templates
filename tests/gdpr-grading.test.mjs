@@ -205,6 +205,20 @@ describe('detectRegion', () => {
     assert.equal(r.inRestricted, false);
   });
 
+  it('uses CHECK_LOCATION without a lookup', async () => {
+    assert.deepEqual(await g.detectRegion(regionRules, { CHECK_LOCATION: 'eu-west-1' }, unused), {
+      inRestricted: true,
+      region: 'eu-west-1',
+      source: 'CHECK_LOCATION',
+    });
+    assert.equal((await g.detectRegion(regionRules, { CHECK_LOCATION: 'ap-southeast-2' }, unused)).inRestricted, false);
+  });
+
+  it('lets CHECK_LOCATION win over GDPR_REGION and CHECKLY_REGION', async () => {
+    const env = { CHECK_LOCATION: 'ap-southeast-2', GDPR_REGION: 'DE', CHECKLY_REGION: 'eu-west-1' };
+    assert.equal((await g.detectRegion(regionRules, env, unused)).source, 'CHECK_LOCATION');
+  });
+
   it('keeps the CHECK_IN_RESTRICTED_REGION and CHECKLY_REGION precedence', async () => {
     assert.equal((await g.detectRegion(regionRules, { CHECK_IN_RESTRICTED_REGION: 'false', GDPR_REGION: 'DE' }, unused)).inRestricted, false);
     assert.equal((await g.detectRegion(regionRules, { CHECKLY_REGION: 'eu-west-1' }, unused)).source, 'checkly-env');

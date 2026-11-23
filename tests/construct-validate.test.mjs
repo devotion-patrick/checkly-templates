@@ -11,7 +11,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { tryFactory, repoRoot } from './helpers.mjs';
+import { constructsOf, tryFactory, repoRoot } from './helpers.mjs';
 
 // `checkly`'s package exports lock down construct-diagnostics, so we
 // load it via its on-disk path directly. Same shape regardless of how
@@ -157,7 +157,7 @@ const KINDS = [
 describe('Construct.validate(): every kind\'s factory output passes Checkly\'s own validators', () => {
   for (const { kind, entry } of KINDS) {
     it(`${kind} produces a construct Checkly does not flag fatally`, async () => {
-      const c = tryFactory(kind, entry);
+      const [c] = constructsOf(tryFactory(kind, entry));
       const { isFatal, observations } = await validateConstruct(c);
       assert.equal(
         isFatal,
@@ -217,7 +217,7 @@ describe('Construct.validate(): variants', () => {
   });
 
   it('gdpr with overrides validates', async () => {
-    const c = tryFactory('gdpr', {
+    const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'cv-gdpr-overrides',
       env: 'PROD',
