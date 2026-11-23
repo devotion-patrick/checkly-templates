@@ -1,19 +1,28 @@
 // Pure grading for the GDPR spec. No Playwright import, so node:test can load it.
 // Grading table and rationale: src/checks/gdpr/README.md#check-levels.
 
-export type CheckLevel = 'report' | 'standard' | 'strict';
-export type GradingLevel = Exclude<CheckLevel, 'report'>;
-export type Grade = 'INFO' | 'WARN' | 'FAIL';
+import {
+  type CheckLevel,
+  type Finding,
+  type GradingLevel,
+  type StorageState,
+  parseGoogleConsentSignal,
+  resolveCheckLevel as resolveSharedCheckLevel,
+  sortByGrade,
+  truncate,
+} from '../../_privacy/common.ts';
 
-export const CHECK_LEVELS: readonly CheckLevel[] = ['report', 'standard', 'strict'];
-export const DEFAULT_CHECK_LEVEL: CheckLevel = 'standard';
-
-export interface Finding {
-  severity: Grade;
-  rule: string;
-  detail: string;
-  url: string;
-}
+export {
+  CHECK_LEVELS,
+  DEFAULT_CHECK_LEVEL,
+  parseCheckLevel,
+  verdictOf,
+  type CheckLevel,
+  type Finding,
+  type Grade,
+  type GradingLevel,
+  type Verdict,
+} from '../../_privacy/common.ts';
 
 export type Rank = 'critical' | 'serious' | 'moderate' | 'advisory';
 
@@ -111,55 +120,15 @@ export interface GoogleConsent {
   analyticsStorage: StorageState;
 }
 
-type StorageState = 'denied' | 'granted' | 'unset';
-
-// gcd letters per storage type. https://developers.google.com/tag-platform/security/guides/consent-debugging
-const GCD_LETTER: Record<string, StorageState> = {
-  l: 'unset',
-  p: 'denied', // denied by default
-  q: 'denied', // denied by default and update
-  m: 'denied', // denied by update
-  u: 'denied', // granted by default, denied by update
-  t: 'granted', // granted by default
-  r: 'granted', // denied by default, granted by update
-  n: 'granted', // granted by update
-  v: 'granted', // granted by default and update
-};
-
-/**
- * Consent Mode state from a Google hit. gcs wins over gcd: gcs is the
- * effective state, gcd the history behind it.
- */
+/** Consent Mode state from a Google hit, reduced to the ad and analytics storage GDPR grades on. */
 export function parseGoogleConsent(url: string): GoogleConsent {
-  let params: URLSearchParams;
-  try {
-    params = new URL(url).searchParams;
-  } catch {
-    return noSignal();
-  }
-
-  const gcs = params.get('gcs');
-  const gcsMatch = gcs ? /^G1([01])([01])$/.exec(gcs) : null;
-  if (gcsMatch) {
-    const ad: StorageState = gcsMatch[1] === '1' ? 'granted' : 'denied';
-    const analytics: StorageState = gcsMatch[2] === '1' ? 'granted' : 'denied';
-    return { state: combine(ad, analytics), signal: `gcs=${gcs}`, adStorage: ad, analyticsStorage: analytics };
-  }
-
-  const gcd = params.get('gcd');
-  if (gcd && gcd.length > 2) {
-    // Two-char prefix, then one letter per storage type: ad_storage, analytics_storage, ...
-    const letters = gcd.slice(2).match(/[a-z]/gi) ?? [];
-    const ad = GCD_LETTER[(letters[0] ?? '').toLowerCase()] ?? 'unset';
-    const analytics = GCD_LETTER[(letters[1] ?? '').toLowerCase()] ?? 'unset';
-    return { state: combine(ad, analytics), signal: `gcd=${gcd}`, adStorage: ad, analyticsStorage: analytics };
-  }
-
-  return noSignal();
-}
-
-function noSignal(): GoogleConsent {
-  return { state: 'none', signal: 'no gcs/gcd', adStorage: 'unset', analyticsStorage: 'unset' };
+  const c = parseGoogleConsentSignal(url);
+  return {
+    state: combine(c.adStorage, c.analyticsStorage),
+    signal: c.signal,
+    adStorage: c.adStorage,
+    analyticsStorage: c.analyticsStorage,
+  };
 }
 
 // Any storage granted before consent is granted. Denied needs analytics_storage explicitly denied.
@@ -171,8 +140,6 @@ function combine(ad: StorageState, analytics: StorageState): ConsentState {
 
 // ---------- Grading ----------
 
-const GRADE_ORDER: Grade[] = ['FAIL', 'WARN', 'INFO'];
-
 export function gradeFindings(obs: Observations, level: GradingLevel): Finding[] {
   const findings: Finding[] = [];
 
@@ -180,7 +147,7 @@ export function gradeFindings(obs: Observations, level: GradingLevel): Finding[]
   findings.push(...gradeRequests(obs, level));
   findings.push(...gradeGtm(obs));
 
-  return findings.sort((a, b) => GRADE_ORDER.indexOf(a.severity) - GRADE_ORDER.indexOf(b.severity));
+  return sortByGrade(findings);
 }
 
 function gradeCookies(obs: Observations): Finding[] {
@@ -320,36 +287,14 @@ function gradeGtm(obs: Observations): Finding[] {
   }];
 }
 
-function truncate(url: string, max = 300): string {
-  return url.length > max ? `${url.slice(0, max)}...` : url;
-}
-
 // ---------- Level ----------
-
-export function parseCheckLevel(value: string, source: string): CheckLevel {
-  const v = value.trim().toLowerCase();
-  if ((CHECK_LEVELS as readonly string[]).includes(v)) return v as CheckLevel;
-  throw new Error(`${source}="${value}" is not a check level. Use one of: ${CHECK_LEVELS.join(', ')}.`);
-}
 
 /** Per-site `checkLevel` wins over GDPR_CHECK_LEVEL, which wins over the default. */
 export function resolveCheckLevel(
   siteLevel: string | undefined,
   envLevel: string | undefined,
 ): { level: CheckLevel; source: string } {
-  if (siteLevel) return { level: parseCheckLevel(siteLevel, 'checkLevel'), source: 'site checkLevel' };
-  if (envLevel) return { level: parseCheckLevel(envLevel, 'GDPR_CHECK_LEVEL'), source: 'GDPR_CHECK_LEVEL' };
-  return { level: DEFAULT_CHECK_LEVEL, source: 'default' };
-}
-
-// ---------- Verdict ----------
-
-export type Verdict = 'passed' | 'passed with warnings' | 'failed';
-
-export function verdictOf(findings: Finding[]): Verdict {
-  if (findings.some((f) => f.severity === 'FAIL')) return 'failed';
-  if (findings.some((f) => f.severity === 'WARN')) return 'passed with warnings';
-  return 'passed';
+  return resolveSharedCheckLevel(siteLevel, envLevel, 'GDPR_CHECK_LEVEL');
 }
 
 // ---------- Region ----------
