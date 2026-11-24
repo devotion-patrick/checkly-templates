@@ -1,7 +1,7 @@
 // Default rule set for the ccpa kind (California, CCPA as amended by CPRA).
 // Consumers adjust it through `overrides`. Rationale: src/checks/ccpa/README.md.
 
-import { cookieBlocklist as gdprCookieBlocklist } from './gdpr-eu-uk-ca.ts';
+import { cookieBlocklist as gdprCookieBlocklist } from './gdpr-eu-uk.ts';
 
 // Checkly locations inside California. The check only means something from here:
 // sites geo-gate their CCPA behaviour on the visitor's IP.

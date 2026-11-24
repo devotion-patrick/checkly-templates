@@ -44,11 +44,16 @@ export const KIND = 'gdpr' as const;
 // Bumped to 3.2.0: facebook.com added to the preset's trackingDomains. Meta
 // pixel hits go to facebook.com/tr, so only the facebook.net script load
 // was caught, and a pixel fired without it went undetected.
-export const KIND_VERSION = '3.2.0';
+//
+// Bumped to 3.3.0: California removed from the preset (US-CA, us-west-1),
+// now covered by the ccpa kind. CCPA is opt-out, so holding California runs
+// to GDPR's opt-in rule failed CCPA-compliant sites. Preset renamed eu-uk;
+// eu-uk-ca kept as an alias.
+export const KIND_VERSION = '3.3.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type CheckLevel = 'report' | 'standard' | 'strict';
-export type GdprPresetName = 'eu-uk-ca' | 'none';
+export type GdprPresetName = 'eu-uk' | 'eu-uk-ca' | 'none';
 
 export interface GdprOverrides {
   trackingDomains?: {
@@ -97,7 +102,7 @@ export const gdprSchemaFragment = {
     complianceMode: {
       enum: ['global', 'targeted'],
       description:
-        '`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/UK/CA). Out-of-region runs in `targeted` mode log findings but pass.',
+        '`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/EEA, UK). Out-of-region runs in `targeted` mode log findings but pass.',
     },
     checkLevel: {
       enum: ['report', 'standard', 'strict'],
@@ -105,9 +110,10 @@ export const gdprSchemaFragment = {
         'How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced (denied-state cookieless pings) as a warning; `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`.',
     },
     preset: {
-      enum: ['eu-uk-ca', 'none'],
-      default: 'eu-uk-ca',
-      description: 'Built-in rule set. Use `"none"` plus `rules` to supply a fully custom rule set.',
+      enum: ['eu-uk', 'eu-uk-ca', 'none'],
+      default: 'eu-uk',
+      description:
+        'Built-in rule set. `eu-uk` covers EU/EEA and UK GDPR; California is opt-out and covered by the `ccpa` kind. `eu-uk-ca` is the pre-3.3.0 name, kept as an alias for `eu-uk` (it no longer includes California). Use `"none"` plus `rules` to supply a fully custom rule set.',
     },
     overrides: {
       type: 'object',

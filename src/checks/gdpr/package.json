@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Checkly Playwright check that catches tracking cookies / requests fired before user consent. Default rule set covers EU/EEA + UK + California; consumers can extend or replace via overrides.",
+  "description": "Checkly Playwright check that catches tracking cookies / requests fired before user consent. Default rule set covers EU/EEA + UK (California: see the ccpa kind); consumers can extend or replace via overrides.",
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",

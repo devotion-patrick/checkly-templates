@@ -23,7 +23,7 @@ Six built-in check kinds, all expressible in a single unified config:
 | `dotnet-health`     | `ApiCheck`        | ASP.NET Core `/health` returns `Healthy` + components   |
 | `xpath`             | `ApiCheck`        | Response body contains / does-not-contain substrings    |
 | `xpath-spa`         | `PlaywrightCheck` | DOM selector assertions on a JS-rendered page           |
-| `gdpr`              | `PlaywrightCheck` | No tracking cookies/requests before consent (EU/UK/CA)  |
+| `gdpr`              | `PlaywrightCheck` | No tracking cookies/requests before consent (EU/UK)     |
 | `ccpa`              | `PlaywrightCheck` | California opt-out: GPC honoured, opt-out link present  |
 
 Plus one reusable deploy template per CI system. The consumer footprint
@@ -63,7 +63,7 @@ content, structured JSON-body assertions) only.
       "env": "PROD",
       "url": "https://www.acme.com",
       "complianceMode": "targeted",
-      "preset": "eu-uk-ca",
+      "preset": "eu-uk",
       "smoke": true,
       "monitor": true
     }

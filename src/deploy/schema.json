@@ -1001,7 +1001,7 @@
                   "global",
                   "targeted"
                 ],
-                "description": "`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/UK/CA). Out-of-region runs in `targeted` mode log findings but pass."
+                "description": "`global` enforces everywhere; `targeted` enforces only when the check runs from a restricted region (EU/EEA, UK). Out-of-region runs in `targeted` mode log findings but pass."
               },
               "checkLevel": {
                 "enum": [
@@ -1013,11 +1013,12 @@
               },
               "preset": {
                 "enum": [
+                  "eu-uk",
                   "eu-uk-ca",
                   "none"
                 ],
-                "default": "eu-uk-ca",
-                "description": "Built-in rule set. Use `\"none\"` plus `rules` to supply a fully custom rule set."
+                "default": "eu-uk",
+                "description": "Built-in rule set. `eu-uk` covers EU/EEA and UK GDPR; California is opt-out and covered by the `ccpa` kind. `eu-uk-ca` is the pre-3.3.0 name, kept as an alias for `eu-uk` (it no longer includes California). Use `\"none\"` plus `rules` to supply a fully custom rule set."
               },
               "overrides": {
                 "type": "object",

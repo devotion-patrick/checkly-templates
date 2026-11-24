@@ -6,7 +6,7 @@
 // Preset resolution lives here too, since CHECK_PARAMS needs the resolved
 // rules, not the raw preset name/overrides.
 
-import { gdprEuUkCa } from '@checkly-templates/shared';
+import { gdprEuUk } from '@checkly-templates/shared';
 import {
   KIND,
   type GdprCustomRules,
@@ -17,15 +17,16 @@ import {
 
 function presetRules(name: GdprPresetName): GdprCustomRules | null {
   if (name === 'none') return null;
-  if (name === 'eu-uk-ca') {
+  // eu-uk-ca: pre-3.3.0 name, kept so existing configs validate. Same rules, no California.
+  if (name === 'eu-uk' || name === 'eu-uk-ca') {
     return {
-      trackingDomains: [...gdprEuUkCa.trackingDomains],
+      trackingDomains: [...gdprEuUk.trackingDomains],
       cookieBlocklist: Object.fromEntries(
-        Object.entries(gdprEuUkCa.cookieBlocklist).map(([k, v]) => [k, [...v]]),
+        Object.entries(gdprEuUk.cookieBlocklist).map(([k, v]) => [k, [...v]]),
       ),
-      restrictedRegions: [...gdprEuUkCa.restrictedRegions],
-      restrictedChecklyLocations: [...gdprEuUkCa.restrictedChecklyLocations],
-      gtmDomain: gdprEuUkCa.gtmDomain,
+      restrictedRegions: [...gdprEuUk.restrictedRegions],
+      restrictedChecklyLocations: [...gdprEuUk.restrictedChecklyLocations],
+      gtmDomain: gdprEuUk.gtmDomain,
     };
   }
   throw new Error(`Unknown gdpr preset "${name}"`);
@@ -66,7 +67,7 @@ function applyOverrides(base: GdprCustomRules, overrides: GdprOverrides | undefi
 }
 
 export function resolveRules(entry: GdprEntry): GdprCustomRules {
-  const presetName = entry.preset ?? 'eu-uk-ca';
+  const presetName = entry.preset ?? 'eu-uk';
   const base = presetRules(presetName);
   if (base === null) {
     if (!entry.rules) {

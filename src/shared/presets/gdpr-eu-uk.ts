@@ -1,4 +1,5 @@
-// Default GDPR rule set covering EU/EEA member states, UK, and California.
+// Default GDPR rule set covering EU/EEA member states and the UK.
+// California is opt-out (CCPA), not opt-in, so it's covered by the ccpa kind instead.
 // Consumers can override these by setting `preset: "none"` and supplying
 // their own `rules`, or by surgically adding/removing entries via
 // `overrides`.
@@ -12,8 +13,6 @@ export const restrictedRegions: ReadonlySet<string> = new Set([
   'GB',
   // EEA non-EU.
   'IS', 'LI', 'NO',
-  // CCPA / California - matched via the US-CA combo in the check itself.
-  'US-CA',
 ]);
 
 // Checkly public locations whose data plane sits inside a restricted
@@ -25,7 +24,6 @@ export const restrictedChecklyLocations: ReadonlySet<string> = new Set([
   'eu-west-3',    // Paris
   'eu-north-1',   // Stockholm
   'eu-south-1',   // Milan
-  'us-west-1',    // N. California
 ]);
 
 // Outbound request domains that are tracking by their very presence.
@@ -84,7 +82,7 @@ export interface GdprPreset {
   cookieBlocklist: Record<string, readonly string[]>;
 }
 
-export const euUkCaPreset: GdprPreset = {
+export const euUkPreset: GdprPreset = {
   restrictedRegions,
   restrictedChecklyLocations,
   trackingDomains,

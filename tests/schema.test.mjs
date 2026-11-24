@@ -293,3 +293,17 @@ describe('schema: project block', () => {
     assert.equal(valid, false);
   });
 });
+
+describe('schema: gdpr preset names', () => {
+  for (const preset of ['eu-uk', 'eu-uk-ca']) {
+    it(`accepts preset "${preset}"`, () => {
+      const { valid, errors } = validateConfig(configWith({ ...MINIMAL_BY_KIND.gdpr, preset }));
+      assert.equal(valid, true, JSON.stringify(errors));
+    });
+  }
+
+  it('rejects an unknown preset', () => {
+    const { valid } = validateConfig(configWith({ ...MINIMAL_BY_KIND.gdpr, preset: 'eu' }));
+    assert.equal(valid, false);
+  });
+});

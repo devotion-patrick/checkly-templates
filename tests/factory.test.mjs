@@ -567,7 +567,7 @@ describe('xpath-spa factory: env-var contract', () => {
 });
 
 describe('gdpr factory', () => {
-  it('serialises the resolved EU/UK/CA preset rules into CHECK_PARAMS', () => {
+  it('serialises the resolved EU/UK preset rules into CHECK_PARAMS', () => {
     const [c] = tryFactory('gdpr', {
       kind: 'gdpr',
       logicalId: 'g1',
@@ -626,6 +626,25 @@ describe('gdpr factory', () => {
     const paramsOf = ([c]) => JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
     assert.equal(paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g5', checkLevel: 'strict' })).checkLevel, 'strict');
     assert.equal('checkLevel' in paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g6' })), false);
+  });
+
+  it('resolves the eu-uk-ca alias to the same rules as eu-uk and the default', () => {
+    const base = {
+      kind: 'gdpr',
+      env: 'PROD',
+      url: 'https://example.com',
+      complianceMode: 'targeted',
+      smoke: true,
+      monitor: false,
+    };
+    const paramsOf = ([c]) => JSON.parse(c.environmentVariables.find((v) => v.key === 'CHECK_PARAMS').value);
+    const euUk = paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g-alias-1', preset: 'eu-uk' }));
+    const alias = paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g-alias-2', preset: 'eu-uk-ca' }));
+    const dflt = paramsOf(tryFactory('gdpr', { ...base, logicalId: 'g-alias-3' }));
+    assert.deepEqual(alias, euUk);
+    assert.deepEqual(dflt, euUk);
+    assert.ok(!euUk.restrictedRegions.includes('US-CA'));
+    assert.ok(!euUk.restrictedChecklyLocations.includes('us-west-1'));
   });
 
   it('creates one check per location with CHECK_LOCATION set', () => {

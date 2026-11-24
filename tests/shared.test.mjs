@@ -11,7 +11,7 @@ import { repoRoot } from './helpers.mjs';
 const jiti = createJiti(import.meta.url);
 const tags = await jiti.import(path.join(repoRoot, 'src', 'shared', 'tags.ts'));
 const frequency = await jiti.import(path.join(repoRoot, 'src', 'shared', 'frequency.ts'));
-const presets = await jiti.import(path.join(repoRoot, 'src', 'shared', 'presets', 'gdpr-eu-uk-ca.ts'));
+const presets = await jiti.import(path.join(repoRoot, 'src', 'shared', 'presets', 'gdpr-eu-uk.ts'));
 const checkName = await jiti.import(path.join(repoRoot, 'src', 'shared', 'check-name.ts'));
 
 describe('buildAutoTags', () => {
@@ -161,17 +161,19 @@ describe('parseFrequency', () => {
   });
 });
 
-describe('gdpr-eu-uk-ca preset', () => {
+describe('gdpr-eu-uk preset', () => {
   it('includes core EU member states + GB in restrictedRegions', () => {
     for (const code of ['DE', 'FR', 'NL', 'GB', 'IE']) {
       assert.ok(presets.restrictedRegions.has(code), `expected ${code} in restrictedRegions`);
     }
   });
 
-  it('flags US-CA but not other US states', () => {
-    assert.ok(presets.restrictedRegions.has('US-CA'));
-    assert.ok(!presets.restrictedRegions.has('US-NY'));
-    assert.ok(!presets.restrictedRegions.has('US'));
+  it('treats no US region or location as restricted: California is the ccpa kind', () => {
+    for (const code of ['US-CA', 'US-NY', 'US']) {
+      assert.ok(!presets.restrictedRegions.has(code), `did not expect ${code} in restrictedRegions`);
+    }
+    assert.ok(!presets.restrictedChecklyLocations.has('us-west-1'));
+    assert.ok(presets.restrictedChecklyLocations.has('eu-west-1'));
   });
 
   it('lists the standard tracking domains', () => {

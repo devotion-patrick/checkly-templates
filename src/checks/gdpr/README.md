@@ -2,9 +2,15 @@
 
 PlaywrightCheck kind that monitors a URL for tracking cookies or
 tracking requests fired **before user consent**. Default rule set covers
-EU/EEA + UK GDPR + California (CCPA); consumers can extend or replace
-the rules surgically via `overrides`, or wholesale via `preset: "none"`
-plus an explicit `rules` object.
+EU/EEA and UK GDPR; consumers can extend or replace the rules surgically
+via `overrides`, or wholesale via `preset: "none"` plus an explicit
+`rules` object.
+
+California isn't covered here. GDPR is opt-in (no tracking before
+consent); California's CCPA is opt-out (GPC honoured, a "Do Not Sell or
+Share" link, tracking stops after opting out). Holding California to the
+opt-in rule fails sites that comply with CCPA, so it has its own kind:
+[`ccpa`](../ccpa/README.md).
 
 ## Consumer config
 
@@ -16,7 +22,7 @@ plus an explicit `rules` object.
   "url": "https://www.acme.com",
   "complianceMode": "targeted",
   "checkLevel": "standard",
-  "preset": "eu-uk-ca",
+  "preset": "eu-uk",
   "overrides": {
     "trackingDomains": { "add": ["custom-tracker.example.com"] },
     "cookieBlocklist": { "add": { "vendor-x": ["_vx_*"] } }
@@ -28,7 +34,7 @@ plus an explicit `rules` object.
 | ---------------- | -------- | ------------------------------------------------------------------------------ |
 | `complianceMode` | yes      | `global` enforces everywhere; `targeted` enforces only from restricted regions |
 | `checkLevel`     | no       | `report`, `standard` or `strict`. Overrides `GDPR_CHECK_LEVEL` for this site    |
-| `preset`         | no       | `eu-uk-ca` (default) or `none`. `none` requires `rules`                        |
+| `preset`         | no       | `eu-uk` (default) or `none`. `none` requires `rules`. `eu-uk-ca` is accepted as an alias of `eu-uk` |
 | `overrides`      | no       | Surgical add/remove on the preset's lists                                      |
 | `rules`          | no       | Full custom rule set; used only when `preset: "none"`                          |
 
@@ -60,18 +66,16 @@ The suffix is applied even for one location, so adding a location later
 doesn't rename the existing check.
 
 A location in `restrictedChecklyLocations` is restricted; any other is
-not. The default list covers the EU, London and `us-west-1`
-(N. California). To drop California, remove both `US-CA` from
-`restrictedRegions` and `us-west-1` from `restrictedChecklyLocations`.
-California's own law (CCPA) is opt-out, not opt-in, so this check's test
-is the wrong one there; use the [`ccpa`](../ccpa/README.md) kind.
+not. The default list covers the EU and London. `us-west-1`
+(N. California) was in the list before 3.3.0; it's now unrestricted here
+and tested by the [`ccpa`](../ccpa/README.md) kind.
 
 ### Region detection
 
 Waterfall (`gdpr/__checks__/grading.ts`), run once per Playwright worker:
 1. `CHECK_IN_RESTRICTED_REGION=true|false` env override (local dev).
 2. `CHECK_LOCATION`, set per check by the factory. Covers every deployed check.
-3. `GDPR_REGION`, an ISO code such as `DE` or `US-CA`, for local runs.
+3. `GDPR_REGION`, an ISO code such as `DE` or `GB`, for local runs.
 4. `CHECKLY_REGION`, if a Checkly runtime ever exposes it.
 5. IP lookup via `ipapi.co`. Local runs only in practice. Its free tier
    rate-limits shared IPs (429); `GDPR_GEOIP_API_KEY` takes a paid key.
