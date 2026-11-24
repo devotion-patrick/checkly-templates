@@ -49,7 +49,12 @@ export const KIND = 'gdpr' as const;
 // now covered by the ccpa kind. CCPA is opt-out, so holding California runs
 // to GDPR's opt-in rule failed CCPA-compliant sites. Preset renamed eu-uk;
 // eu-uk-ca kept as an alias.
-export const KIND_VERSION = '3.3.0';
+//
+// Bumped to 3.4.0: browser checks' REGION is read for the run location
+// (only CHECKLY_REGION was, which only Playwright Check Suites set), and a
+// Consent Mode advanced cookieless ping is INFO under standard, not WARN,
+// so a run doing what standard accepts no longer reports Degraded.
+export const KIND_VERSION = '3.4.0';
 
 export type ComplianceMode = 'global' | 'targeted';
 export type CheckLevel = 'report' | 'standard' | 'strict';
@@ -107,7 +112,7 @@ export const gdprSchemaFragment = {
     checkLevel: {
       enum: ['report', 'standard', 'strict'],
       description:
-        'How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced (denied-state cookieless pings) as a warning; `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`.',
+        'How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced: denied-state cookieless pings pass without degrading the run (logged as INFO); `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`.',
     },
     preset: {
       enum: ['eu-uk', 'eu-uk-ca', 'none'],

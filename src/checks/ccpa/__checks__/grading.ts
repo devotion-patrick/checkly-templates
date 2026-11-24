@@ -15,6 +15,8 @@ import {
 } from '../../_privacy/common.ts';
 
 export {
+  gradingLevelFor,
+  shouldEnforce,
   verdictOf,
   type CheckLevel,
   type Finding,
@@ -177,9 +179,12 @@ function gradeGpcAdTech(obs: Observations, level: GradingLevel): Finding[] {
 
     if (hits.length === 0) {
       findings.push({
-        severity: level === 'strict' ? 'FAIL' : 'WARN',
+        // No data sent beyond the script fetch, so at least as acceptable as flagged hits.
+        severity: level === 'strict' ? 'FAIL' : 'INFO',
         rule: 'ad-script-after-gpc',
-        detail: `${vendor}: ${plural(reqs.length, 'script')} loaded after GPC, no hits sent`,
+        detail:
+          `${vendor}: ${plural(reqs.length, 'script')} loaded after GPC, no hits sent. `
+          + (level === 'strict' ? 'Strict: the script fetch still discloses IP and device data' : 'Accepted under standard, fails under strict'),
         url: truncate(reqs[0]!.url),
       });
       continue;
@@ -199,7 +204,8 @@ function gradeGpcAdTech(obs: Observations, level: GradingLevel): Finding[] {
 
     const signals = [...new Set(hits.map((r) => restrictionSignal(r.url)))].join(', ');
     findings.push({
-      severity: level === 'strict' ? 'FAIL' : 'WARN',
+      // Standard accepts it, so INFO: a WARN would report the run Degraded.
+      severity: level === 'strict' ? 'FAIL' : 'INFO',
       rule: 'restricted-processing-after-gpc',
       detail:
         `${vendor}: ${plural(hits.length, 'hit')} after GPC, all flagged ${signals}. `

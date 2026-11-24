@@ -53,6 +53,20 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **gdpr 3.4.0, ccpa 1.1.0: region from browser checks, and accepted
+  findings no longer degrade.** For consumers deploying the bundled
+  specs as Checkly browser checks across several locations (no
+  `CHECK_LOCATION`):
+  - The run location is now read from `REGION`, which browser checks
+    set, as well as `CHECKLY_REGION`, which only Playwright Check Suites
+    set. `REGION` is used only when it looks like a Checkly location.
+    Before, these runs fell through to ipapi.co, got 429 from Checkly's
+    shared IPs, and were treated as restricted, so a targeted gdpr check
+    from Singapore enforced and failed.
+  - What `standard` accepts is graded INFO, not WARN, since a WARN-only
+    run reports Degraded. gdpr: `google-request-denied-cookieless`
+    (Consent Mode advanced ping). ccpa: `restricted-processing-after-gpc`
+    and `ad-script-after-gpc`. All still FAIL under `strict`.
 - **gdpr 3.3.0: California removed from the default preset.** `US-CA`
   is no longer a restricted region and `us-west-1` no longer a
   restricted Checkly location. GDPR is opt-in and CCPA opt-out, so a

@@ -1009,7 +1009,7 @@
                   "standard",
                   "strict"
                 ],
-                "description": "How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced (denied-state cookieless pings) as a warning; `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`."
+                "description": "How strictly to grade tracking before consent. `report` logs every finding and never fails; `standard` accepts Google Consent Mode advanced: denied-state cookieless pings pass without degrading the run (logged as INFO); `strict` fails any tracking request before consent. Overrides the GDPR_CHECK_LEVEL env var for this site. Default `standard`."
               },
               "preset": {
                 "enum": [
@@ -1269,7 +1269,7 @@
                   "standard",
                   "strict"
                 ],
-                "description": "How strictly to grade tracking after a GPC opt-out. `report` logs and never fails; `standard` accepts vendor restricted-processing flags (Google rdp/npa, Meta LDU) as a warning; `strict` fails them. Overrides the CCPA_CHECK_LEVEL env var for this site. Default `standard`."
+                "description": "How strictly to grade tracking after a GPC opt-out. `report` logs and never fails; `standard` accepts vendor restricted-processing flags (Google rdp/npa, Meta LDU): they pass without degrading the run (logged as INFO); `strict` fails them. Overrides the CCPA_CHECK_LEVEL env var for this site. Default `standard`."
               },
               "overrides": {
                 "type": "object",

@@ -76,7 +76,12 @@ Waterfall (`gdpr/__checks__/grading.ts`), run once per Playwright worker:
 1. `CHECK_IN_RESTRICTED_REGION=true|false` env override (local dev).
 2. `CHECK_LOCATION`, set per check by the factory. Covers every deployed check.
 3. `GDPR_REGION`, an ISO code such as `DE` or `GB`, for local runs.
-4. `CHECKLY_REGION`, if a Checkly runtime ever exposes it.
+4. Checkly's own region variable, for checks without `CHECK_LOCATION`
+   (e.g. a single browser check deployed across several locations from
+   `src/deploy/specs`). Playwright Check Suites expose `CHECKLY_REGION`;
+   browser checks expose `REGION`. `CHECKLY_REGION` wins; `REGION` is only
+   used when it looks like a Checkly location (`ap-southeast-1`), since
+   it's a generic name.
 5. IP lookup via `ipapi.co`. Local runs only in practice. Its free tier
    rate-limits shared IPs (429); `GDPR_GEOIP_API_KEY` takes a paid key.
 6. **Fail-safe fallback.** If all of the above fail, the run is treated as
@@ -110,7 +115,7 @@ than hard-coding one answer.
 | Level | Behaviour |
 | --- | --- |
 | `report` | Logs and grades every finding. Never fails |
-| `standard` (default) | Accepts Google Consent Mode v2 "advanced": denied-state cookieless pings are WARN |
+| `standard` (default) | Accepts Google Consent Mode v2 "advanced": denied-state cookieless pings pass without degrading (INFO) |
 | `strict` | Any tracking request before consent fails, as only Consent Mode "basic" passes |
 
 Set it per environment with `GDPR_CHECK_LEVEL`, or per site with the
@@ -128,12 +133,18 @@ agent) as in scope even without cookies, and some DPAs (CNIL, Dutch AP)
 take that line. Standard accepts the Google design, strict follows the
 EDPB reading.
 
+What a level accepts is INFO, not WARN. A WARN-only run reports Degraded,
+so a site doing exactly what its level allows would show as degraded in
+monitoring. The finding is still logged and says it fails under strict.
+No gdpr rule is WARN under any level now; WARN is kept for a finding the
+level doesn't accept but that shouldn't fail the run.
+
 ### Grading
 
 | Finding before consent | standard | strict | Rule |
 | --- | --- | --- | --- |
 | Non-essential cookie set | FAIL | FAIL | `cookie-before-consent` |
-| Google request, consent denied, no Google cookies | WARN | FAIL | `google-request-denied-cookieless` |
+| Google request, consent denied, no Google cookies | INFO | FAIL | `google-request-denied-cookieless` |
 | Google request, consent denied, Google cookies set anyway | FAIL | FAIL | `google-request-denied-with-cookies` |
 | Google request, consent granted | FAIL | FAIL | `google-request-consent-granted` |
 | Google request, no consent signal | FAIL | FAIL | `google-request-no-consent-signal` |
@@ -178,9 +189,9 @@ it was detected, then each finding with its grade:
   region:                eu-west-1 via CHECK_LOCATION, restricted
   enforcing:             yes
   findings (2):
-    [WARN] google-request-denied-cookieless: google-analytics.com, gcs=G100: Consent Mode advanced cookieless ping. ...
+    [INFO] google-request-denied-cookieless: google-analytics.com, gcs=G100: Consent Mode advanced cookieless ping. Accepted under standard, fails under strict (1 request)
     [INFO] gtm-consent-default-first: GTM loaded, Consent Mode default=denied set before tags fired
-  result: passed with warnings (0 FAIL, 1 WARN)
+  result: passed (0 FAIL, 0 WARN)
 ```
 
 ### Why an online scanner may disagree

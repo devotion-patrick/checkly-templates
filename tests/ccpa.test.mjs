@@ -95,16 +95,16 @@ describe('gradeFindings', () => {
     });
   }
 
-  it('grades Limited Data Use hits WARN under standard and FAIL under strict', () => {
+  it('grades Limited Data Use hits INFO under standard (passes, no Degraded) and FAIL under strict', () => {
     const o = obs({ gpc: pass({ requests: [META_SCRIPT, metaHit('&dpo=LDU')] }) });
-    assert.ok(graded(o, 'standard').includes('WARN restricted-processing-after-gpc'));
-    assert.equal(g.verdictOf(g.gradeFindings(o, 'standard')), 'passed with warnings');
+    assert.ok(graded(o, 'standard').includes('INFO restricted-processing-after-gpc'));
+    assert.equal(g.verdictOf(g.gradeFindings(o, 'standard')), 'passed');
     assert.ok(graded(o, 'strict').includes('FAIL restricted-processing-after-gpc'));
   });
 
-  it('grades an ad script with no hits WARN under standard and FAIL under strict', () => {
+  it('grades an ad script with no hits INFO under standard and FAIL under strict', () => {
     const o = obs({ gpc: pass({ requests: [META_SCRIPT] }) });
-    assert.ok(graded(o, 'standard').includes('WARN ad-script-after-gpc'));
+    assert.ok(graded(o, 'standard').includes('INFO ad-script-after-gpc'));
     assert.ok(graded(o, 'strict').includes('FAIL ad-script-after-gpc'));
   });
 

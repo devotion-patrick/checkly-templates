@@ -7,6 +7,9 @@
 //                       adCookieBlocklist, optOutLinkPatterns, optOutSelectors }
 //                       resolved by ccpa/env.ts from the preset + overrides.
 //   CHECK_LOCATION    — Checkly location, set per check by the factory.
+//   CHECKLY_REGION / REGION — run location from Checkly when CHECK_LOCATION isn't set:
+//                       Playwright Check Suites expose CHECKLY_REGION, browser checks
+//                       (e.g. deployed from src/deploy/specs) REGION.
 //
 // Runtime env:
 //   CCPA_CHECK_LEVEL  — report | standard | strict. Default standard. A site's checkLevel wins.
@@ -18,7 +21,7 @@ import fs from 'node:fs';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 // Relative, not the workspace package: Checkly's bundler would try to npm-install that.
 import { californiaChecklyLocations } from '../../../shared/presets/ccpa-ca.ts';
-import { hostnameOf, matchCookie, matchDomain } from '../../_privacy/common.ts';
+import { checklyRegionFrom, hostnameOf, matchCookie, matchDomain } from '../../_privacy/common.ts';
 import { loadAndSettle, requireEnv as requireEnvFrom, snapshotCookies } from '../../_privacy/browser.ts';
 import {
   type Finding,
@@ -27,8 +30,10 @@ import {
   type PassObservations,
   type PrivacyStrings,
   gradeFindings,
+  gradingLevelFor,
   privacyOptOut,
   resolveCheckLevel,
+  shouldEnforce,
   verdictOf,
 } from './grading.ts';
 
@@ -194,7 +199,7 @@ test('CCPA - opt-out honoured', async ({ page, context, browser }) => {
   const params = CHECK_PARAMS;
 
   const { level, source: levelSource } = resolveCheckLevel(params.checkLevel, process.env.CCPA_CHECK_LEVEL);
-  const location = process.env.CHECK_LOCATION;
+  const location = process.env.CHECK_LOCATION?.trim() || checklyRegionFrom(process.env);
   const inCalifornia = !!location && californiaChecklyLocations.has(location);
 
   // Pass 1: baseline.
@@ -221,16 +226,16 @@ test('CCPA - opt-out honoured', async ({ page, context, browser }) => {
       gpc,
       optOutLink,
     },
-    level === 'report' ? 'standard' : level,
+    gradingLevelFor(level),
   );
   const failures = findings.filter((f) => f.severity === 'FAIL');
   const warnings = findings.filter((f) => f.severity === 'WARN');
   const verdict = verdictOf(findings);
-  const enforce = level !== 'report';
+  const enforce = shouldEnforce(level);
 
   console.log('CCPA check:', CHECK_TARGET_URL);
   console.log('  check level:           ', `${level} (${levelSource})`);
-  console.log('  location:              ', location ?? 'local run (no CHECK_LOCATION)');
+  console.log('  location:              ', location ?? 'local run (no CHECK_LOCATION, CHECKLY_REGION or REGION)');
   if (!inCalifornia) {
     console.log('                          not a California location; the site may not show its CCPA behaviour');
   }

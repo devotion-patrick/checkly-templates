@@ -52,6 +52,19 @@ function sortByGrade(findings) {
 function truncate(url, max = 300) {
   return url.length > max ? `${url.slice(0, max)}...` : url;
 }
+function gradingLevelFor(level) {
+  return level === "report" ? "standard" : level;
+}
+function shouldEnforce(level, regionEnforces = true) {
+  return level !== "report" && regionEnforces;
+}
+var CHECKLY_LOCATION = /^[a-z]{2}-[a-z]+-\d$/;
+function checklyRegionFrom(env) {
+  const suite = env.CHECKLY_REGION?.trim();
+  if (suite) return suite;
+  const browser = env.REGION?.trim();
+  return browser && CHECKLY_LOCATION.test(browser) ? browser : void 0;
+}
 var TWO_LABEL_TLDS = /* @__PURE__ */ new Set([
   "co.uk",
   "co.nz",
@@ -320,7 +333,8 @@ function gradeRequest(req, level, googleCookies) {
     };
   }
   return {
-    severity: level === "strict" ? "FAIL" : "WARN",
+    // Standard accepts it, so INFO: a WARN would report the run Degraded.
+    severity: level === "strict" ? "FAIL" : "INFO",
     rule: "google-request-denied-cookieless",
     detail: `${state}: Consent Mode advanced cookieless ping. ` + (level === "strict" ? "Strict: tags must not load until consent (Consent Mode basic)" : "Accepted under standard, fails under strict"),
     url
@@ -381,7 +395,7 @@ async function detectRegion(rules, env, fetchImpl) {
   if (pinned) {
     return { inRestricted: isRestrictedRegion(pinned, rules), region: pinned.toUpperCase(), source: "GDPR_REGION" };
   }
-  const checklyRegion = env.CHECKLY_REGION;
+  const checklyRegion = checklyRegionFrom(env);
   if (checklyRegion) {
     return {
       inRestricted: rules.restrictedChecklyLocations.includes(checklyRegion),
@@ -530,8 +544,7 @@ test("GDPR - no tracking before consent", async ({ page, context, region }) => {
     (e) => e?.mode === "default" && e?.analytics_storage === "denied" && e?.ad_storage === "denied"
   );
   const consentDefault = deniedDefault ? { at: deniedDefault.at ?? 0 } : null;
-  const regionEnforces = params.complianceMode === "global" || region.inRestricted;
-  const enforce = level !== "report" && regionEnforces;
+  const enforce = shouldEnforce(level, params.complianceMode === "global" || region.inRestricted);
   const findings = gradeFindings(
     {
       pageUrl: CHECK_TARGET_URL,
@@ -540,7 +553,7 @@ test("GDPR - no tracking before consent", async ({ page, context, region }) => {
       gtmLoaded: gtmHit,
       consentDefault
     },
-    level === "report" ? "standard" : level
+    gradingLevelFor(level)
   );
   const failures = findings.filter((f) => f.severity === "FAIL");
   const warnings = findings.filter((f) => f.severity === "WARN");

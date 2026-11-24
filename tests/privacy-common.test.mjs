@@ -45,3 +45,16 @@ describe('resolveCheckLevel', () => {
     assert.throws(() => c.resolveCheckLevel(undefined, 'x', 'CCPA_CHECK_LEVEL'), /CCPA_CHECK_LEVEL="x"/);
   });
 });
+
+describe('checklyRegionFrom', () => {
+  it('reads CHECKLY_REGION (Playwright Check Suites) ahead of REGION (browser checks)', () => {
+    assert.equal(c.checklyRegionFrom({ CHECKLY_REGION: 'eu-west-1', REGION: 'ap-southeast-1' }), 'eu-west-1');
+    assert.equal(c.checklyRegionFrom({ REGION: 'ap-southeast-1' }), 'ap-southeast-1');
+  });
+
+  it('ignores an empty or non-Checkly REGION', () => {
+    for (const REGION of [undefined, '', 'prod', 'eu-west', 'EU-WEST-1', 'us-west-10']) {
+      assert.equal(c.checklyRegionFrom({ REGION }), undefined, `REGION=${REGION}`);
+    }
+  });
+});
