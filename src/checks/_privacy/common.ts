@@ -52,6 +52,36 @@ export function truncate(url: string, max = 300): string {
   return url.length > max ? `${url.slice(0, max)}...` : url;
 }
 
+// ---------- Enforcement ----------
+
+/** report grades with the standard table. */
+export function gradingLevelFor(level: CheckLevel): GradingLevel {
+  return level === 'report' ? 'standard' : level;
+}
+
+/** Report never fails; `regionEnforces` is false for a targeted run outside a restricted region. */
+export function shouldEnforce(level: CheckLevel, regionEnforces = true): boolean {
+  return level !== 'report' && regionEnforces;
+}
+
+// ---------- Checkly run location ----------
+
+// e.g. us-west-1, ap-southeast-1, eu-central-1.
+const CHECKLY_LOCATION = /^[a-z]{2}-[a-z]+-\d$/;
+
+/**
+ * Run location from Checkly's runtime: CHECKLY_REGION on Playwright Check
+ * Suites, REGION on browser checks. REGION is a generic name, so only
+ * trusted when it looks like a Checkly location.
+ */
+export function checklyRegionFrom(env: Record<string, string | undefined>): string | undefined {
+  const suite = env.CHECKLY_REGION?.trim();
+  if (suite) return suite;
+
+  const browser = env.REGION?.trim();
+  return browser && CHECKLY_LOCATION.test(browser) ? browser : undefined;
+}
+
 // ---------- Domains ----------
 
 const TWO_LABEL_TLDS = new Set([

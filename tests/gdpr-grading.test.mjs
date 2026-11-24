@@ -54,10 +54,21 @@ describe('gradeFindings', () => {
     trackingRequests: [req(GA('gcs=G100'), 'google-analytics.com')],
   });
 
-  it('grades a Consent Mode advanced ping WARN under standard', () => {
+  it('grades a Consent Mode advanced ping INFO under standard, so the run passes without warnings', () => {
     const findings = g.gradeFindings(stengg, 'standard');
-    assert.deepEqual(rules(findings), ['WARN google-request-denied-cookieless', 'INFO gtm-consent-default-first']);
-    assert.equal(g.verdictOf(findings), 'passed with warnings');
+    assert.deepEqual(rules(findings), ['INFO google-request-denied-cookieless', 'INFO gtm-consent-default-first']);
+    assert.equal(g.verdictOf(findings), 'passed');
+    assert.equal(findings.filter((f) => f.severity === 'WARN').length, 0);
+    assert.match(findings[0].detail, /fails under strict/);
+  });
+
+  it('never enforces under report, which grades with the standard table', () => {
+    assert.equal(g.gradingLevelFor('report'), 'standard');
+    assert.equal(g.shouldEnforce('report', true), false);
+    assert.equal(g.shouldEnforce('strict', true), true);
+    assert.equal(g.shouldEnforce('strict', false), false);
+    const findings = g.gradeFindings(stengg, g.gradingLevelFor('report'));
+    assert.equal(g.verdictOf(findings), 'passed');
   });
 
   it('grades the same ping FAIL under strict', () => {
@@ -217,6 +228,33 @@ describe('detectRegion', () => {
   it('lets CHECK_LOCATION win over GDPR_REGION and CHECKLY_REGION', async () => {
     const env = { CHECK_LOCATION: 'ap-southeast-2', GDPR_REGION: 'DE', CHECKLY_REGION: 'eu-west-1' };
     assert.equal((await g.detectRegion(regionRules, env, unused)).source, 'CHECK_LOCATION');
+  });
+
+  it('reads REGION, as browser checks expose it, via checkly-env', async () => {
+    assert.deepEqual(await g.detectRegion(regionRules, { REGION: 'ap-southeast-1' }, unused), {
+      inRestricted: false,
+      region: 'ap-southeast-1',
+      source: 'checkly-env',
+    });
+    assert.deepEqual(await g.detectRegion(regionRules, { REGION: 'eu-west-1' }, unused), {
+      inRestricted: true,
+      region: 'eu-west-1',
+      source: 'checkly-env',
+    });
+  });
+
+  it('lets CHECKLY_REGION win over REGION, and both lose to CHECK_LOCATION and GDPR_REGION', async () => {
+    const both = await g.detectRegion(regionRules, { CHECKLY_REGION: 'eu-west-1', REGION: 'ap-southeast-1' }, unused);
+    assert.equal(both.region, 'eu-west-1');
+    assert.equal((await g.detectRegion(regionRules, { CHECK_LOCATION: 'ap-southeast-2', REGION: 'eu-west-1' }, unused)).source, 'CHECK_LOCATION');
+    assert.equal((await g.detectRegion(regionRules, { GDPR_REGION: 'SG', REGION: 'eu-west-1' }, unused)).source, 'GDPR_REGION');
+  });
+
+  it('falls through an empty or malformed REGION to the lookup', async () => {
+    for (const REGION of ['', '  ', 'production', 'EU-WEST-1', 'eu-west']) {
+      const r = await g.detectRegion(regionRules, { REGION }, respond(429));
+      assert.equal(r.source, 'fallback', `REGION="${REGION}" should fall through`);
+    }
   });
 
   it('keeps the CHECK_IN_RESTRICTED_REGION and CHECKLY_REGION precedence', async () => {

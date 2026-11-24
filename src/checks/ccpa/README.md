@@ -48,6 +48,10 @@ schema and factory both reject non-California locations.
 
 Each location becomes its own check (`<logicalId>-<location>`) with
 `CHECK_LOCATION` set, as the gdpr kind does. No IP lookup is needed.
+Without `CHECK_LOCATION` (e.g. a browser check deployed from
+`src/deploy/specs`), the spec reads Checkly's own region variable for the
+location line: `CHECKLY_REGION` on Playwright Check Suites, `REGION` on
+browser checks.
 
 ## What the check does
 
@@ -87,7 +91,7 @@ Vendors without a known flag count as unflagged.
 | Level | Behaviour |
 | --- | --- |
 | `report` | Logs and grades every finding. Never fails |
-| `standard` (default) | Accepts vendor restricted-processing flags as WARN |
+| `standard` (default) | Accepts vendor restricted-processing flags: they pass without degrading (INFO) |
 | `strict` | Fails flagged hits too, as they still disclose IP and device data |
 
 Set per environment with `CCPA_CHECK_LEVEL`, or per site with
@@ -100,8 +104,8 @@ Set per environment with `CCPA_CHECK_LEVEL`, or per site with
 | Ad-tech hit after GPC, no restricted-processing flag | FAIL | FAIL | `sale-after-gpc` |
 | Ad cookie set after GPC | FAIL | FAIL | `ad-cookie-after-gpc` |
 | Ad-tech seen before opt-out, no opt-out link | FAIL | FAIL | `no-opt-out-link` |
-| Ad-tech hits after GPC, all flagged | WARN | FAIL | `restricted-processing-after-gpc` |
-| Ad-tech script loaded after GPC, no hits | WARN | FAIL | `ad-script-after-gpc` |
+| Ad-tech hits after GPC, all flagged | INFO | FAIL | `restricted-processing-after-gpc` |
+| Ad-tech script loaded after GPC, no hits | INFO | FAIL | `ad-script-after-gpc` |
 | CMP privacy string shows no opt-out after GPC | WARN | WARN | `gpp-opt-out-missing` |
 | Analytics after GPC | INFO | WARN | `analytics-after-gpc` |
 | Opt-out link found | INFO | INFO | `opt-out-link` |
@@ -119,7 +123,12 @@ Why these grades:
   2026), so an unflagged ad-tech hit or ad cookie after GPC fails.
 - Restricted-processing flags are the vendors' own CCPA mechanism.
   Standard accepts them; strict follows the reading that the hit itself
-  still discloses IP and device data.
+  still discloses IP and device data. An ad script that loads but sends
+  no hits is graded the same way.
+- What a level accepts is INFO, not WARN, because a WARN-only run
+  reports Degraded. WARN is for what the level doesn't accept but
+  shouldn't fail on: the CMP not recording the GPC opt-out, and
+  analytics after GPC under strict.
 - First-party analytics under a service-provider contract isn't a sale or
   share. The check can't see the contract, so strict warns.
 - No ad-tech before opt-out suggests nothing is sold or shared, so a

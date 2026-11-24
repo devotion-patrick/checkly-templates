@@ -25,6 +25,9 @@
 //   GDPR_REGION                — ISO code (e.g. DE, GB). Skips the GeoIP lookup.
 //   GDPR_GEOIP_API_KEY         — ipapi.co key, avoids the shared-IP 429.
 //   CHECK_IN_RESTRICTED_REGION — true | false, local debugging.
+//   CHECKLY_REGION / REGION    — run location from Checkly when CHECK_LOCATION isn't set:
+//                                Playwright Check Suites expose CHECKLY_REGION, browser
+//                                checks (e.g. deployed from src/deploy/specs) REGION.
 //
 // Grading lives in ./grading.ts; levels are explained in the kind's README.
 
@@ -41,7 +44,9 @@ import {
   describeRegion,
   detectRegion,
   gradeFindings,
+  gradingLevelFor,
   resolveCheckLevel,
+  shouldEnforce,
   verdictOf,
 } from './grading.ts';
 
@@ -206,8 +211,7 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
   const consentDefault: ConsentDefault | null = deniedDefault ? { at: deniedDefault.at ?? 0 } : null;
 
   // Report never enforces; targeted mode enforces only from a restricted region.
-  const regionEnforces = params.complianceMode === 'global' || region.inRestricted;
-  const enforce = level !== 'report' && regionEnforces;
+  const enforce = shouldEnforce(level, params.complianceMode === 'global' || region.inRestricted);
 
   const findings: Finding[] = gradeFindings(
     {
@@ -217,7 +221,7 @@ test('GDPR - no tracking before consent', async ({ page, context, region }) => {
       gtmLoaded: gtmHit,
       consentDefault,
     },
-    level === 'report' ? 'standard' : level,
+    gradingLevelFor(level),
   );
   const failures = findings.filter((f) => f.severity === 'FAIL');
   const warnings = findings.filter((f) => f.severity === 'WARN');

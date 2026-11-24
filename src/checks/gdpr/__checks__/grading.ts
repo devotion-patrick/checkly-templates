@@ -4,6 +4,7 @@
 import {
   type CheckLevel,
   type Finding,
+  checklyRegionFrom,
   type GradingLevel,
   type StorageState,
   parseGoogleConsentSignal,
@@ -15,7 +16,9 @@ import {
 export {
   CHECK_LEVELS,
   DEFAULT_CHECK_LEVEL,
+  gradingLevelFor,
   parseCheckLevel,
+  shouldEnforce,
   verdictOf,
   type CheckLevel,
   type Finding,
@@ -240,7 +243,8 @@ function gradeRequest(req: TrackingRequest, level: GradingLevel, googleCookies: 
   }
 
   return {
-    severity: level === 'strict' ? 'FAIL' : 'WARN',
+    // Standard accepts it, so INFO: a WARN would report the run Degraded.
+    severity: level === 'strict' ? 'FAIL' : 'INFO',
     rule: 'google-request-denied-cookieless',
     detail:
       `${state}: Consent Mode advanced cookieless ping. `
@@ -328,7 +332,8 @@ type FetchLike = (url: string, init?: { signal?: AbortSignal }) => Promise<{
 export const GEOIP_URL = 'https://ipapi.co/json/';
 
 /**
- * Waterfall: CHECK_IN_RESTRICTED_REGION, CHECK_LOCATION, GDPR_REGION, CHECKLY_REGION, ipapi.co.
+ * Waterfall: CHECK_IN_RESTRICTED_REGION, CHECK_LOCATION, GDPR_REGION,
+ * Checkly's region (CHECKLY_REGION or REGION), ipapi.co.
  * Anything unresolved falls back to restricted.
  */
 export async function detectRegion(
@@ -356,7 +361,7 @@ export async function detectRegion(
     return { inRestricted: isRestrictedRegion(pinned, rules), region: pinned.toUpperCase(), source: 'GDPR_REGION' };
   }
 
-  const checklyRegion = env.CHECKLY_REGION;
+  const checklyRegion = checklyRegionFrom(env);
   if (checklyRegion) {
     return {
       inRestricted: rules.restrictedChecklyLocations.includes(checklyRegion),

@@ -80,6 +80,19 @@ function sortByGrade(findings) {
 function truncate(url, max = 300) {
   return url.length > max ? `${url.slice(0, max)}...` : url;
 }
+function gradingLevelFor(level) {
+  return level === "report" ? "standard" : level;
+}
+function shouldEnforce(level, regionEnforces = true) {
+  return level !== "report" && regionEnforces;
+}
+var CHECKLY_LOCATION = /^[a-z]{2}-[a-z]+-\d$/;
+function checklyRegionFrom(env) {
+  const suite = env.CHECKLY_REGION?.trim();
+  if (suite) return suite;
+  const browser = env.REGION?.trim();
+  return browser && CHECKLY_LOCATION.test(browser) ? browser : void 0;
+}
 var TWO_LABEL_TLDS = /* @__PURE__ */ new Set([
   "co.uk",
   "co.nz",
@@ -288,9 +301,10 @@ function gradeGpcAdTech(obs, level) {
     const hits = reqs.filter((r) => r.resourceType !== "script");
     if (hits.length === 0) {
       findings.push({
-        severity: level === "strict" ? "FAIL" : "WARN",
+        // No data sent beyond the script fetch, so at least as acceptable as flagged hits.
+        severity: level === "strict" ? "FAIL" : "INFO",
         rule: "ad-script-after-gpc",
-        detail: `${vendor}: ${plural(reqs.length, "script")} loaded after GPC, no hits sent`,
+        detail: `${vendor}: ${plural(reqs.length, "script")} loaded after GPC, no hits sent. ` + (level === "strict" ? "Strict: the script fetch still discloses IP and device data" : "Accepted under standard, fails under strict"),
         url: truncate(reqs[0].url)
       });
       continue;
@@ -307,7 +321,8 @@ function gradeGpcAdTech(obs, level) {
     }
     const signals = [...new Set(hits.map((r) => restrictionSignal(r.url)))].join(", ");
     findings.push({
-      severity: level === "strict" ? "FAIL" : "WARN",
+      // Standard accepts it, so INFO: a WARN would report the run Degraded.
+      severity: level === "strict" ? "FAIL" : "INFO",
       rule: "restricted-processing-after-gpc",
       detail: `${vendor}: ${plural(hits.length, "hit")} after GPC, all flagged ${signals}. ` + (level === "strict" ? "Strict: the hit still discloses IP and device data" : "Accepted under standard, fails under strict"),
       url: truncate(hits[0].url)
@@ -504,7 +519,7 @@ async function runPass(page, context, params) {
   if (!isOurKind || !CHECK_PARAMS) return;
   const params = CHECK_PARAMS;
   const { level, source: levelSource } = resolveCheckLevel2(params.checkLevel, process.env.CCPA_CHECK_LEVEL);
-  const location = process.env.CHECK_LOCATION;
+  const location = process.env.CHECK_LOCATION?.trim() || checklyRegionFrom(process.env);
   const inCalifornia = !!location && californiaChecklyLocations.has(location);
   const baseline = await runPass(page, context, params);
   const optOutLink = await findOptOutLink(page, params.optOutLinkPatterns, params.optOutSelectors);
@@ -526,15 +541,15 @@ async function runPass(page, context, params) {
       gpc,
       optOutLink
     },
-    level === "report" ? "standard" : level
+    gradingLevelFor(level)
   );
   const failures = findings.filter((f) => f.severity === "FAIL");
   const warnings = findings.filter((f) => f.severity === "WARN");
   const verdict = verdictOf(findings);
-  const enforce = level !== "report";
+  const enforce = shouldEnforce(level);
   console.log("CCPA check:", CHECK_TARGET_URL);
   console.log("  check level:           ", `${level} (${levelSource})`);
-  console.log("  location:              ", location ?? "local run (no CHECK_LOCATION)");
+  console.log("  location:              ", location ?? "local run (no CHECK_LOCATION, CHECKLY_REGION or REGION)");
   if (!inCalifornia) {
     console.log("                          not a California location; the site may not show its CCPA behaviour");
   }

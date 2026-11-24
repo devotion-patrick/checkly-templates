@@ -4,7 +4,10 @@ import { californiaChecklyLocations } from '@checkly-templates/shared/presets/cc
 
 export const KIND = 'ccpa' as const;
 // Emitted as a `tmpl-version:ccpa@<version>` tag; see the gdpr kind's schema.ts.
-export const KIND_VERSION = '1.0.0';
+// 1.1.0: flagged hits and hit-less ad scripts after GPC are INFO under
+// standard, not WARN, so an accepted run doesn't report Degraded; the
+// location line reads CHECKLY_REGION or REGION when CHECK_LOCATION is unset.
+export const KIND_VERSION = '1.1.0';
 
 export type CheckLevel = 'report' | 'standard' | 'strict';
 
@@ -65,7 +68,7 @@ export const ccpaSchemaFragment = {
     checkLevel: {
       enum: ['report', 'standard', 'strict'],
       description:
-        'How strictly to grade tracking after a GPC opt-out. `report` logs and never fails; `standard` accepts vendor restricted-processing flags (Google rdp/npa, Meta LDU) as a warning; `strict` fails them. Overrides the CCPA_CHECK_LEVEL env var for this site. Default `standard`.',
+        'How strictly to grade tracking after a GPC opt-out. `report` logs and never fails; `standard` accepts vendor restricted-processing flags (Google rdp/npa, Meta LDU): they pass without degrading the run (logged as INFO); `strict` fails them. Overrides the CCPA_CHECK_LEVEL env var for this site. Default `standard`.',
     },
     overrides: {
       type: 'object',
