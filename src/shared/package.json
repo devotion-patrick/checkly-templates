@@ -14,7 +14,7 @@
     "./locations": "./locations.ts",
     "./check-name": "./check-name.ts",
     "./headers": "./headers.ts",
-    "./presets/gdpr-eu-uk-ca": "./presets/gdpr-eu-uk-ca.ts",
+    "./presets/gdpr-eu-uk": "./presets/gdpr-eu-uk.ts",
     "./presets/ccpa-ca": "./presets/ccpa-ca.ts"
   },
   "peerDependencies": {

@@ -51,6 +51,19 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `src/deploy/build-specs.mjs`; CI runs `--check` to keep them fresh.
   No `KIND_VERSION` changes: check behaviour is the same.
 
+### Changed
+
+- **gdpr 3.3.0: California removed from the default preset.** `US-CA`
+  is no longer a restricted region and `us-west-1` no longer a
+  restricted Checkly location. GDPR is opt-in and CCPA opt-out, so a
+  CCPA-compliant site could fail its GDPR check from N. California;
+  California is tested by the `ccpa` kind. The preset is renamed
+  `eu-uk`; `eu-uk-ca` stays accepted as an alias for the same rules, so
+  existing configs keep validating. In `targeted` mode, gdpr runs from
+  `us-west-1` now log findings but don't enforce. Consumers who still
+  want California held to GDPR can add `US-CA` and `us-west-1` back
+  through `overrides`.
+
 ### Architecture notes for downstream forks
 
 Two non-obvious Checkly v7 constraints surfaced during live testing. If

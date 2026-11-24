@@ -27,7 +27,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var import_node_fs = __toESM(require("node:fs"), 1);
 var import_test = require("@playwright/test");
 
-// src/shared/presets/gdpr-eu-uk-ca.ts
+// src/shared/presets/gdpr-eu-uk.ts
 var cookieBlocklist = {
   google_analytics: ["_ga", "_ga_*", "_gid", "_gat", "_gat_*"],
   google_ads: ["_gcl_au", "_gcl_aw", "_gcl_dc", "_gcl_gb", "_gcl_gs", "_gcl_ha", "_gac_*"],

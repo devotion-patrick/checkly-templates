@@ -80,7 +80,7 @@
       "logicalId": "acme-home-prod-gdpr",
       "url": "https://www.acme.com",
       "complianceMode": "targeted",
-      "preset": "eu-uk-ca",
+      "preset": "eu-uk",
       "overrides": {
         "trackingDomains": { "add": ["custom-tracker.example.com"] }
       },

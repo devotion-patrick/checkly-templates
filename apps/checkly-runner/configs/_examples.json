@@ -63,7 +63,7 @@
       "logicalId": "example-gdpr",
       "url": "https://example.com",
       "complianceMode": "global",
-      "preset": "eu-uk-ca",
+      "preset": "eu-uk",
       "overrides": {
         "trackingDomains": { "add": ["custom-analytics.example"] }
       },
