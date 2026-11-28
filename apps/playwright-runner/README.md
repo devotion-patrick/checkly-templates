@@ -62,6 +62,12 @@ node audit-report.mjs                                          # devotion_sites-
 node audit-report.mjs --config path/to/config.json --concurrency 10 --out report.json
 ```
 
+When you regenerate the Confluence page, open the body with a link to the
+standard the report checks against, the Development Compendium go-live
+checklist (https://dvtn-development-compendium.netlify.app/delivery/release-management/go-lives).
+The page holds the latest results; the compendium holds the rules and how
+to fix each failure.
+
 `report.json` and any Confluence body generated from it are run artifacts,
 not something to commit — regenerate on demand when the page needs a
 refresh.
